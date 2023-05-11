@@ -1,11 +1,5 @@
 defmodule Bench.Transforms.ZenumNestedTupleState do
-  def run(data),
-    do:
-      data
-      |> z5_take_init()
-      |> z5_take()
-
-  defp z1_filter_init(data), do: data
+  def run(data), do: z5_take({[], 0, {[], data}})
 
   defp z1_filter([value | values]) do
     if value.reference == "REF3" do
@@ -17,8 +11,6 @@ defmodule Bench.Transforms.ZenumNestedTupleState do
 
   defp z1_filter([]), do: :done
 
-  defp z2_flat_map_init(data), do: {[], z1_filter_init(data)}
-
   defp z2_flat_map({[value | values], state}), do: {value, {values, state}}
 
   defp z2_flat_map({[], state}) do
@@ -27,8 +19,6 @@ defmodule Bench.Transforms.ZenumNestedTupleState do
       :done -> :done
     end
   end
-
-  defp z3_filter_init(data), do: z2_flat_map_init(data)
 
   defp z3_filter(state) do
     case z2_flat_map(state) do
@@ -44,16 +34,12 @@ defmodule Bench.Transforms.ZenumNestedTupleState do
     end
   end
 
-  defp z4_map_init(data), do: z3_filter_init(data)
-
   defp z4_map(state) do
     case z3_filter(state) do
       {value, new_state} -> {{value.event_id, value.parent_id}, new_state}
       :done -> :done
     end
   end
-
-  defp z5_take_init(data), do: {[], 0, z4_map_init(data)}
 
   defp z5_take({values, 20, _state}), do: :lists.reverse(values)
 
