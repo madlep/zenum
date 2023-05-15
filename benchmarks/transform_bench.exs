@@ -7,6 +7,7 @@ variants = [
   T.Stream,
   T.ZenumArgsState,
   T.ZenumFlatTupleState,
+  T.ZenumIter,
   T.ZenumListStackState,
   T.ZenumNestedTupleState
 ]
@@ -25,25 +26,26 @@ end
 
 Benchee.run(
   %{
-    #"enum" => &T.Enum.run/1,
+    "enum" => &T.Enum.run/1,
     "hand optimised" => &T.HandOptimised.run/1,
     "hand optimised if filter" => &T.HandOptimisedIfFilter.run/1,
-    #"stream" => &T.Stream.run/1,
+    "stream" => &T.Stream.run/1,
     "zenum args state" => &T.ZenumArgsState.run/1,
     "zenum flat tuple state" => &T.ZenumFlatTupleState.run/1,
+    "zenum iter" => &T.ZenumIter.run/1,
     "zenum list stack state" => &T.ZenumListStackState.run/1,
     "zenum nested tuple state" => &T.ZenumNestedTupleState.run/1,
   },
   warmup: 10,
-  time: 30,
+  time: 20,
   #memory_time: 2,
   #reduction_time: 2,
   formatters: [ {Benchee.Formatters.Console, extended_statistics: true} ],
   inputs: %{
-    #"n 10" => 10,
-    #"n 100" => 100,
-    #"n 1000" => 1000,
-    "n 10000" => 10000,
+    "n 10" => 10,
+    "n 100" => 100,
+    "n 1000" => 1000,
+     "n 10000" => 10000,
   },
   before_scenario: fn n ->
     T.build_data(n)
