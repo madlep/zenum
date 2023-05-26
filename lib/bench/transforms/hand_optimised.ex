@@ -8,7 +8,7 @@ defmodule Bench.Transforms.HandOptimised do
   defp do_opt(z5_acc, _z5_n, [], []), do: :lists.reverse(z5_acc)
 
   # take + map + filter true + flat_map when flat_map buffer is empty and needs new value from data
-  defp do_opt(z5_acc, z5_n, [], [%{reference: "REF3", events: z2_acc} | z0_data]),
+  defp do_opt(z5_acc, z5_n, [], [%{reference: :REF3, events: z2_acc} | z0_data]),
     do: do_opt(z5_acc, z5_n, z2_acc, z0_data)
 
   # take + map + filter false when flat_map buffer is empty and needs new value from data

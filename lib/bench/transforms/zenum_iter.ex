@@ -7,7 +7,7 @@ defmodule Bench.Transforms.ZenumIter do
 
   def run(data) do
     data
-    |> filter(fn record -> record.reference == "REF3" end)
+    |> filter(fn record -> record.reference == :REF3 end)
     |> flat_map(fn record -> record.events end)
     |> filter(fn event -> event.included? end)
     |> map(fn event -> {event.event_id, event.parent_id} end)

@@ -18,7 +18,7 @@ defmodule Bench.Transforms.HandOptimisedIfFilter do
 
   # flat_map + filter when flat_map buffer empty
   defp do_opt(z5_acc, z5_n, [], [value | new_z0_data]) do
-    if value.reference == "REF3" do
+    if value.reference == :REF3 do
       do_opt(z5_acc, z5_n, value.events, new_z0_data)
     else
       do_opt(z5_acc, z5_n, [], new_z0_data)

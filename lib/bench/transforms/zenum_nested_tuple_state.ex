@@ -2,7 +2,7 @@ defmodule Bench.Transforms.ZenumNestedTupleState do
   def run(data), do: z5_take({[], 20, {[], data}})
 
   defp z1_filter([value | z0_data]) do
-    if value.reference == "REF3" do
+    if value.reference == :REF3 do
       {value, z0_data}
     else
       z1_filter(z0_data)

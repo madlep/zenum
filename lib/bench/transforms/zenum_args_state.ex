@@ -4,7 +4,7 @@ defmodule Bench.Transforms.ZenumArgsState do
   defp z1_filter([]), do: :done
 
   defp z1_filter([value | values]) do
-    if value.reference == "REF3" do
+    if value.reference == :REF3 do
       {value, values}
     else
       z1_filter(values)

@@ -9,7 +9,7 @@ defmodule Bench.Transforms.ZenumListStackState do
       ])
 
   defp z1_filter([value | values] = data) do
-    if value.reference == "REF3" do
+    if value.reference == :REF3 do
       data
     else
       z1_filter(values)

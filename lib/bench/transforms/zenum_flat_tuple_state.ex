@@ -4,7 +4,7 @@ defmodule Bench.Transforms.ZenumFlatTupleState do
   defp z1_filter({_z5_acc, _z5_n, _z2_acc, []}), do: :done
 
   defp z1_filter({z5_acc, z5_n, z2_acc, [value | new_z0_data]}) do
-    if value.reference == "REF3" do
+    if value.reference == :REF3 do
       {value, {z5_acc, z5_n, z2_acc, new_z0_data}}
     else
       z1_filter({z5_acc, z5_n, z2_acc, new_z0_data})
