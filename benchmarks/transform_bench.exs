@@ -9,6 +9,7 @@ variants = [
   T.ZenumFlatTupleState,
   T.ZenumIter,
   T.ZenumListStackState,
+  T.ZenumNestedTupleMacroState,
   T.ZenumNestedTupleState
 ]
 
@@ -34,6 +35,7 @@ Benchee.run(
     "zenum flat tuple state" => &T.ZenumFlatTupleState.run/1,
     "zenum iter" => &T.ZenumIter.run/1,
     "zenum list stack state" => &T.ZenumListStackState.run/1,
+    "zenum nested tuple macro state" => &T.ZenumNestedTupleMacroState.run/1,
     "zenum nested tuple state" => &T.ZenumNestedTupleState.run/1,
   },
   warmup: 10,
