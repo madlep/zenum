@@ -1,22 +1,31 @@
 defmodule Bench.Transforms.ZenumNestedTupleState do
-  def run(data), do: z5_take({[], 20, {[], data}})
+  @compile {:inline, z0_data: 1, z4_map: 1, z5_take: 1}
 
-  defp z1_filter([value | z0_data]) do
-    if value.reference == :REF3 do
-      {value, z0_data}
-    else
-      z1_filter(z0_data)
+  def run(data), do: z6_run({[], {20, {[], data}}})
+
+  defp z0_data([value | new_state]), do: {value, new_state}
+  defp z0_data(_), do: {}
+
+  defp z1_filter(state) do
+    case z0_data(state) do
+      {value, new_state} ->
+        if value.reference == :REF3 do
+          {value, new_state}
+        else
+          z1_filter(new_state)
+        end
+
+      done ->
+        done
     end
   end
 
-  defp z1_filter([]), do: :done
-
   defp z2_flat_map({[value | z2_acc], state}), do: {value, {z2_acc, state}}
 
-  defp z2_flat_map({[], state}) do
-    case z1_filter(state) do
+  defp z2_flat_map({_, z0_data}) do
+    case z1_filter(z0_data) do
       {value, new_state} -> z2_flat_map({value.events, new_state})
-      other -> other
+      done -> done
     end
   end
 
@@ -29,26 +38,31 @@ defmodule Bench.Transforms.ZenumNestedTupleState do
           z3_filter(new_state)
         end
 
-      other ->
-        other
+      done ->
+        done
     end
   end
 
-  defmacrop z4_map(state) do
-    quote do
-      case z3_filter(unquote(state)) do
-        {value, new_state} -> {{value.event_id, value.parent_id}, new_state}
-        other -> other
-      end
+  defp z4_map(state) do
+    case z3_filter(state) do
+      {value, new_state} -> {{value.event_id, value.parent_id}, new_state}
+      done -> done
     end
   end
 
-  defp z5_take({z5_acc, 0, _state}), do: :lists.reverse(z5_acc)
+  defp z5_take({0, _state}), do: :done
 
-  defp z5_take({z5_acc, z5_n, state}) do
+  defp z5_take({z5_n, state}) do
     case z4_map(state) do
-      {value, new_state} -> z5_take({[value | z5_acc], z5_n - 1, new_state})
-      :done -> :lists.reverse(z5_acc)
+      {value, new_state} -> {value, {z5_n - 1, new_state}}
+      done -> done
+    end
+  end
+
+  defp z6_run({z6_acc, state}) do
+    case z5_take(state) do
+      {value, new_state} -> z6_run({[value | z6_acc], new_state})
+      _ -> :lists.reverse(z6_acc)
     end
   end
 end
