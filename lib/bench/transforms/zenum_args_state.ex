@@ -1,5 +1,5 @@
 defmodule Bench.Transforms.ZenumArgsState do
-  def run(data), do: z5_take([], 0, [], data)
+  def run(data), do: z5_take([], 20, [], data)
 
   defp z1_filter([]), do: :done
 
@@ -11,14 +11,14 @@ defmodule Bench.Transforms.ZenumArgsState do
     end
   end
 
-  defp z2_flat_map([], z0_data) do
+  defp z2_flat_map([value | values], z0_data), do: {value, values, z0_data}
+
+  defp z2_flat_map(_, z0_data) do
     case z1_filter(z0_data) do
       {value, new_z0_data} -> z2_flat_map(value.events, new_z0_data)
-      :done -> :done
+      done -> done
     end
   end
-
-  defp z2_flat_map([value | values], z0_data), do: {value, values, z0_data}
 
   defp z3_filter(z2_acc, z0_data) do
     case z2_flat_map(z2_acc, z0_data) do
@@ -29,8 +29,8 @@ defmodule Bench.Transforms.ZenumArgsState do
           z3_filter(new_z2_acc, new_z0_data)
         end
 
-      :done ->
-        :done
+      done ->
+        done
     end
   end
 
@@ -39,19 +39,19 @@ defmodule Bench.Transforms.ZenumArgsState do
       {value, new_z2_acc, new_z0_data} ->
         {{value.event_id, value.parent_id}, new_z2_acc, new_z0_data}
 
-      :done ->
-        :done
+      done ->
+        done
     end
   end
 
-  defp z5_take(z5_acc, 20, _z2_acc, _z0_data), do: :lists.reverse(z5_acc)
+  defp z5_take(z5_acc, 0, _z2_acc, _z0_data), do: :lists.reverse(z5_acc)
 
   defp z5_take(z5_acc, z5_n, z2_acc, z0_data) do
     case z4_map(z2_acc, z0_data) do
       {value, new_z2_acc, new_z0_data} ->
-        z5_take([value | z5_acc], z5_n + 1, new_z2_acc, new_z0_data)
+        z5_take([value | z5_acc], z5_n - 1, new_z2_acc, new_z0_data)
 
-      :done ->
+      _done ->
         :lists.reverse(z5_acc)
     end
   end
