@@ -1,0 +1,89 @@
+# zenum code gen
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.10.0"}
+])
+```
+
+## Section
+
+```elixir
+defmodule ZEnum do
+  defmacro to_list(ast) do
+    # {:|>, _meta, [rest_ast, take_ast]} = ast
+    # {:|>, _meta, [rest_ast, map_ast]} = rest_ast
+    # {:|>, _meta, [rest_ast, filter1_ast]} = rest_ast
+    # {:|>, _meta, [rest_ast, flat_map_ast]} = rest_ast
+    # {:|>, _meta, [rest_ast, filter2_ast]} = rest_ast
+    # data_ast = rest_ast
+    # [take_ast, map_ast, filter1_ast, flat_map_ast, filter2_ast, data_ast] |> dbg()
+
+    # defmacrop z0_data(acc, z5_n, z2_buffer, z0_data)
+
+    ast = ast |> unpipe()
+    ops = parse_ops(ast) |> IO.inspect()
+
+    ast |> dbg()
+  end
+
+  defp unpipe({:|>, _m, [pipe_ast, f_ast]}) do
+    {f, f_meta, f_args} = f_ast
+    {f, f_meta, [unpipe(pipe_ast) | f_args]}
+  end
+
+  defp unpipe(ast), do: ast
+
+  defp parse_ops({{:., _, [{:__aliases__, _, [:ZEnum]}, op]}, _, [prev | args]}) do
+    [parse_op(op, args) | parse_ops(prev)]
+  end
+
+  defp parse_ops(input_ast), do: {:input, [], input_ast}
+
+  defp parse_op(:take, [n]) do
+    {:take, [n], nil}
+  end
+
+  defp parse_op(:map, [f]) do
+    {:map, [], f}
+  end
+end
+```
+
+```elixir
+defmodule M do
+  require ZEnum
+
+  def stuff(data) do
+    data
+    |> ZEnum.from_list()
+    |> ZEnum.filter(fn record -> record.reference == :REF3 end)
+    |> ZEnum.flat_map(fn record -> record.events end)
+    |> ZEnum.filter(fn event -> event.included? end)
+    |> ZEnum.map(fn event -> {event.event_id, event.parent_id} end)
+    |> ZEnum.take(20)
+    |> ZEnum.to_list()
+  end
+end
+```
+
+```elixir
+quote do
+  take(
+    map(
+      filter(
+        flat_map(
+          filter(
+            data,
+            fn record -> record.reference == :REF3 end
+          ),
+          fn record -> record.events end
+        ),
+        fn event -> event.included? end
+      ),
+      fn event -> {event.event_id, event.parent_id} end
+    ),
+    20
+  )
+end
+```

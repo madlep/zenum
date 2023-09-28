@@ -1,18 +1,13 @@
 defmodule Zenum do
-  @moduledoc """
-  Documentation for `Zenum`.
-  """
+  defmacro filter(_z, _f) do
+    # defp z1_filter([value | z0_data]) do
+    #   if value.reference == :REF3 do
+    #     {value, z0_data}
+    #   else
+    #     z1_filter(z0_data)
+    #   end
+    # end
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Zenum.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    # defp z1_filter(_), do: :done
   end
 end
