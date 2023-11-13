@@ -5,39 +5,9 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
   # match (it won't right there - but it will when called elsewhere)
   @dialyzer {:no_match, run: 1}
 
-  defmacrop z6_to_list_return(z6_list) do
+  defmacrop return(z6_list) do
     quote do
       :lists.reverse(unquote(z6_list))
-    end
-  end
-
-  defmacrop z5_take_return(z6_list, _z5_n) do
-    quote do
-      z6_to_list_return(unquote(z6_list))
-    end
-  end
-
-  defmacrop z4_map_return(z6_list, z5_n) do
-    quote do
-      z5_take_return(unquote(z6_list), unquote(z5_n))
-    end
-  end
-
-  defmacrop z3_filter_return(z6_list, z5_n) do
-    quote do
-      z4_map_return(unquote(z6_list), unquote(z5_n))
-    end
-  end
-
-  defmacrop z2_flat_map_return(z6_list, z5_n, _z2_buffer) do
-    quote do
-      z3_filter_return(unquote(z6_list), unquote(z5_n))
-    end
-  end
-
-  defmacrop z1_filter_return(z6_list, z5_n, z2_buffer) do
-    quote do
-      z2_flat_map_return(unquote(z6_list), unquote(z5_n), unquote(z2_buffer))
     end
   end
 
@@ -48,7 +18,7 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
           z1_filter_push(value, unquote(z6_list), unquote(z5_n), unquote(z2_buffer), new_z0_list)
 
         _ ->
-          z1_filter_return(unquote(z6_list), unquote(z5_n), unquote(z2_buffer))
+          return(unquote(z6_list))
       end
     end
   end
@@ -85,7 +55,11 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
 
   defmacrop z5_take(z6_list, z5_n, z2_buffer, z0_list) do
     quote do
-      z4_map(unquote(z6_list), unquote(z5_n), unquote(z2_buffer), unquote(z0_list))
+      if unquote(z5_n) == 0 do
+        return(unquote(z6_list))
+      else
+        z4_map(unquote(z6_list), unquote(z5_n), unquote(z2_buffer), unquote(z0_list))
+      end
     end
   end
 
@@ -116,8 +90,6 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
 
   defp z4_map_push(value, z6_list, z5_n, z2_buffer, z0_list),
     do: z5_take_push({value.event_id, value.parent_id}, z6_list, z5_n, z2_buffer, z0_list)
-
-  defp z5_take_push(_value, z6_list, 0, _z2_buffer, _z0_list), do: z6_to_list_return(z6_list)
 
   defp z5_take_push(value, z6_list, z5_n, z2_buffer, z0_list),
     do: z5_take([value | z6_list], z5_n - 1, z2_buffer, z0_list)
