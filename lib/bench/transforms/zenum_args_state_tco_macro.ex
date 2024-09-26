@@ -15,7 +15,7 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
     quote do
       case unquote(z0_list) do
         [value | new_z0_list] ->
-          z1_filter_push(value, unquote(z6_list), unquote(z5_n), unquote(z2_buffer), new_z0_list)
+          z1_filter_push(unquote(z6_list), unquote(z5_n), unquote(z2_buffer), new_z0_list, value)
 
         _ ->
           return(unquote(z6_list))
@@ -33,7 +33,7 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
     quote do
       case unquote(z2_buffer) do
         [value | new_z2_buffer] ->
-          z3_filter_push(value, unquote(z6_list), unquote(z5_n), new_z2_buffer, unquote(z0_list))
+          z3_filter_push(unquote(z6_list), unquote(z5_n), new_z2_buffer, unquote(z0_list), value)
 
         _ ->
           z1_filter(unquote(z6_list), unquote(z5_n), unquote(z2_buffer), unquote(z0_list))
@@ -69,30 +69,59 @@ defmodule Bench.Transforms.ZenumArgsStateTCOMacro do
     end
   end
 
-  defp z1_filter_push(value, z6_list, z5_n, z2_buffer, z0_list) do
-    if value.reference == :REF3 do
-      z2_flat_map_push(value, z6_list, z5_n, z2_buffer, z0_list)
+  defp z1_filter_push(z6_list, z5_n, z2_buffer, z0_list, value)
+       when is_list(z6_list) and
+              is_integer(z5_n) and
+              is_list(z2_buffer) and
+              is_list(z0_list) do
+    if (fn
+          %{reference: :REF3} -> true
+          _ -> false
+        end).(value) do
+      z2_flat_map_push(z6_list, z5_n, z2_buffer, z0_list, value)
     else
       z1_filter(z6_list, z5_n, z2_buffer, z0_list)
     end
   end
 
-  defp z2_flat_map_push(value, z6_list, z5_n, _z2_buffer, z0_list),
-    do: z2_flat_map(z6_list, z5_n, value.events, z0_list)
+  defp z2_flat_map_push(z6_list, z5_n, _z2_buffer, z0_list, value)
+       when is_list(z6_list) and
+              is_integer(z5_n) and
+              is_list(z0_list),
+       do: z2_flat_map(z6_list, z5_n, (fn %{events: events} -> events end).(value), z0_list)
 
-  defp z3_filter_push(value, z6_list, z5_n, z2_buffer, z0_list) do
-    if value.included? do
-      z4_map_push(value, z6_list, z5_n, z2_buffer, z0_list)
+  defp z3_filter_push(z6_list, z5_n, z2_buffer, z0_list, value)
+       when is_list(z6_list) and
+              is_integer(z5_n) and
+              is_list(z2_buffer) and
+              is_list(z0_list) do
+    if (fn %{included?: included} -> included end).(value) do
+      z4_map_push(z6_list, z5_n, z2_buffer, z0_list, value)
     else
       z3_filter(z6_list, z5_n, z2_buffer, z0_list)
     end
   end
 
-  defp z4_map_push(value, z6_list, z5_n, z2_buffer, z0_list),
-    do: z5_take_push({value.event_id, value.parent_id}, z6_list, z5_n, z2_buffer, z0_list)
+  defp z4_map_push(z6_list, z5_n, z2_buffer, z0_list, value)
+       when is_list(z6_list) and
+              is_integer(z5_n) and
+              is_list(z2_buffer) and
+              is_list(z0_list),
+       do:
+         z5_take_push(
+           z6_list,
+           z5_n,
+           z2_buffer,
+           z0_list,
+           (fn %{event_id: event_id, parent_id: parent_id} -> {event_id, parent_id} end).(value)
+         )
 
-  defp z5_take_push(value, z6_list, z5_n, z2_buffer, z0_list),
-    do: z5_take([value | z6_list], z5_n - 1, z2_buffer, z0_list)
+  defp z5_take_push(z6_list, z5_n, z2_buffer, z0_list, value)
+       when is_list(z6_list) and
+              is_integer(z5_n) and
+              is_list(z2_buffer) and
+              is_list(z0_list),
+       do: z5_take([value | z6_list], z5_n - 1, z2_buffer, z0_list)
 
   def run(data), do: z6_to_list([], 20, [], data)
 end
