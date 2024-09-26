@@ -2,13 +2,14 @@ alias Bench.Transforms, as: T
 
 
 variants = [
-  T.Enum,
+  # T.Enum,
   # T.HandOptimised,
   # T.HandOptimisedIfFilter,
   T.Stream,
   # T.ZenumArgsState,
-  T.ZenumArgsStateTCO,
+  # T.ZenumArgsStateTCO,
   T.ZenumArgsStateTCOMacro,
+  T.ZenumArgsStateTCOExpanded,
   # T.ZenumFlatTupleState,
   # T.ZenumIter,
   # T.ZenumListStackState,
@@ -35,9 +36,9 @@ Benchee.run(
   warmup: 5,
   time: 10,
   # memory_time: 10,
-  # reduction_time: 10,
+  reduction_time: 10,
   # profile_after: :fprof,
-  formatters: [ {Benchee.Formatters.Console, extended_statistics: true} ],
+  formatters: [ {Benchee.Formatters.Console, extended_statistics: false} ],
   inputs: %{
     "n 10" => 10,
     #"n 100" => 100,
