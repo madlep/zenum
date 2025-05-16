@@ -176,10 +176,10 @@ defmodule Zenum do
     :"op_#{n}_#{param}"
   end
 
-  defp op_states_params_ast(op_states, context) do
+  defp op_states_params_ast(op_states, ctx) do
     op_states
     |> Enum.map(fn {n, _op_name, param, _value} ->
-      {state_param_name(n, param), [], context}
+      {state_param_name(n, param), [], ctx}
     end)
   end
 
@@ -205,19 +205,11 @@ defmodule Zenum do
 
   ### build ASTs
 
-  # defp set_state_param(params_ast, n, param) do
-  #   # TODO
-  # end
-
-  defp build_push_asts(id, ops, context) do
+  defp build_push_asts(id, ops, ctx) do
     # z_0_0 - to_list
     # z_0_1 - filter
     # z_0_2 - map
     # z_0_3 - from_list
-
-    # def __z_0_0_push__(unquote_splicing(params_ast), value) do
-    #   __z_0_1_next__([value | op_0_acc], op_3_data)
-    # end
 
     # def __z_0_1_push__(unquote_splicing(params_ast), value) do
     #   if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
@@ -237,21 +229,22 @@ defmodule Zenum do
     # dbg(ops)
 
     ops_states = op_states(ops)
-    params_ast = op_states_params_ast(ops_states, context)
+    params_ast = op_states_params_ast(ops_states, ctx)
 
     ops
-    |> Enum.map(&push_ast(&1, id, params_ast, context))
+    |> Enum.map(&push_ast(&1, id, params_ast, ctx))
   end
 
-  defp push_ast({n, :to_list, _, _}, id, params_ast, context) do
-    value_acc_ast =
-      quote context: context do
-        [value | unquote(Macro.var(param(n, :acc), context))]
-      end
+  defp push_ast({n, :to_list, _, _}, id, ps, ctx) do
+    acc = param(n, :acc)
 
-    quote context: context do
-      def unquote(push_fn(id, n))(unquote_splicing(params_ast), value) do
-        unquote(next_fn(id, n))(unquote_splicing(set_param(params_ast, n, :acc, value_acc_ast)))
+    quote context: ctx do
+      def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
+        unquote(next_fn(id, n))(
+          unquote_splicing(
+            set_param(ps, acc, quote(context: ctx, do: [v | unquote(Macro.var(acc, ctx))]))
+          )
+        )
       end
     end
   end
@@ -264,8 +257,8 @@ defmodule Zenum do
   defp next_fn(id, n), do: :"__z_#{id}_#{n + 1}_next__"
   defp param(n, name), do: :"op_#{n}_#{name}"
 
-  defp set_param(params_ast, n, name, new_param_ast) do
-    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param(n, name) end)
+  defp set_param(params_ast, param, new_param_ast) do
+    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param end)
     List.replace_at(params_ast, i, new_param_ast)
   end
 end
