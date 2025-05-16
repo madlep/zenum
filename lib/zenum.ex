@@ -25,67 +25,71 @@ defmodule Zenum do
 
       [
         quote context: __CALLER__.module do
+          # z_0_0 - to_list
+          # z_0_1 - filter
+          # z_0_2 - map
+          # z_0_3 - from_list
           unquote(push_asts)
 
-          def z_0_0_to_list_push(unquote_splicing(params_ast), value) do
-            z_0_1_filter_next([value | op_0_to_list_acc], op_3_from_list_data)
+          def z_0_0_push(unquote_splicing(params_ast), value) do
+            z_0_1_next([value | op_0_acc], op_3_data)
           end
 
-          def z_0_1_filter_push(unquote_splicing(params_ast), value) do
+          def z_0_1_push(unquote_splicing(params_ast), value) do
             if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
-              z_0_0_to_list_push(unquote_splicing(params_ast), value)
+              z_0_0_push(unquote_splicing(params_ast), value)
             else
-              z_0_1_filter_next(unquote_splicing(params_ast))
+              z_0_1_next(unquote_splicing(params_ast))
             end
           end
 
-          def z_0_2_map_push(unquote_splicing(params_ast), value) do
-            z_0_1_filter_push(
+          def z_0_2_push(unquote_splicing(params_ast), value) do
+            z_0_1_push(
               unquote_splicing(params_ast),
               unquote(Map.fetch!(args, {2, :map, :f})).(value)
             )
           end
 
-          def z_0_0_to_list_done(unquote_splicing(params_ast)) do
-            Enum.reverse(op_0_to_list_acc)
+          def z_0_0_done(unquote_splicing(params_ast)) do
+            Enum.reverse(op_0_acc)
           end
 
-          def z_0_1_filter_done(unquote_splicing(params_ast)) do
-            z_0_0_to_list_done(unquote_splicing(params_ast))
+          def z_0_1_done(unquote_splicing(params_ast)) do
+            z_0_0_done(unquote_splicing(params_ast))
           end
 
-          def z_0_2_map_done(unquote_splicing(params_ast)) do
-            z_0_1_filter_done(unquote_splicing(params_ast))
+          def z_0_2_done(unquote_splicing(params_ast)) do
+            z_0_1_done(unquote_splicing(params_ast))
           end
 
-          def z_0_0_from_list_done(unquote_splicing(params_ast)) do
-            z_0_2_map_done(unquote_splicing(params_ast))
+          def z_0_0_done(unquote_splicing(params_ast)) do
+            z_0_2_done(unquote_splicing(params_ast))
           end
 
-          def z_0_0_from_list_next(unquote_splicing(params_ast)) do
-            case op_3_from_list_data do
-              [value | new_op_3_from_list_data] ->
-                z_0_2_map_push(op_0_to_list_acc, new_op_3_from_list_data, value)
+          def z_0_0_next(unquote_splicing(params_ast)) do
+            case op_3_data do
+              [value | new_op_3_data] ->
+                z_0_2_push(op_0_acc, new_op_3_data, value)
 
               [] ->
-                z_0_0_from_list_done(op_0_to_list_acc, op_3_from_list_data)
+                z_0_0_done(unquote_splicing(params_ast))
             end
           end
 
-          def z_0_2_map_next(unquote_splicing(params_ast)) do
-            z_0_0_from_list_next(unquote_splicing(params_ast))
+          def z_0_2_next(unquote_splicing(params_ast)) do
+            z_0_0_next(unquote_splicing(params_ast))
           end
 
-          def z_0_1_filter_next(unquote_splicing(params_ast)) do
-            z_0_2_map_next(unquote_splicing(params_ast))
+          def z_0_1_next(unquote_splicing(params_ast)) do
+            z_0_2_next(unquote_splicing(params_ast))
           end
 
-          def z_0_0_to_list_next(unquote_splicing(params_ast)) do
-            z_0_1_filter_next(unquote_splicing(params_ast))
+          def z_0_0_next(unquote_splicing(params_ast)) do
+            z_0_1_next(unquote_splicing(params_ast))
           end
 
           defp unquote(:"z_#{id}_run")(unquote_splicing(params_ast)) do
-            z_0_0_to_list_next(unquote_splicing(params_ast))
+            z_0_0_next(unquote_splicing(params_ast))
           end
         end
       ]
@@ -168,14 +172,14 @@ defmodule Zenum do
     end)
   end
 
-  defp state_param_name(n, op_name, param) do
-    :"op_#{n}_#{op_name}_#{param}"
+  defp state_param_name(n, param) do
+    :"op_#{n}_#{param}"
   end
 
   defp op_states_params_ast(op_states, context) do
     op_states
-    |> Enum.map(fn {n, op_name, param, _value} ->
-      {state_param_name(n, op_name, param), [], context}
+    |> Enum.map(fn {n, _op_name, param, _value} ->
+      {state_param_name(n, param), [], context}
     end)
   end
 
@@ -200,7 +204,7 @@ defmodule Zenum do
   end
 
   ### build ASTs
-  def build_push_asts(ops) do
+  defp build_push_asts(ops) do
     # TODO
 
     dbg(ops)
