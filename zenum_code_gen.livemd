@@ -1,89 +1,363 @@
-# zenum code gen
-
-```elixir
-Mix.install([
-  {:kino, "~> 0.10.0"}
-])
-```
+# zenum WIP
 
 ## Section
 
 ```elixir
-defmodule ZEnum do
-  defmacro to_list(ast) do
-    # {:|>, _meta, [rest_ast, take_ast]} = ast
-    # {:|>, _meta, [rest_ast, map_ast]} = rest_ast
-    # {:|>, _meta, [rest_ast, filter1_ast]} = rest_ast
-    # {:|>, _meta, [rest_ast, flat_map_ast]} = rest_ast
-    # {:|>, _meta, [rest_ast, filter2_ast]} = rest_ast
-    # data_ast = rest_ast
-    # [take_ast, map_ast, filter1_ast, flat_map_ast, filter2_ast, data_ast] |> dbg()
+# AOC 23 day 1, part 1
 
-    # defmacrop z0_data(acc, z5_n, z2_buffer, z0_data)
+"""
+1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet
+"""
+|> String.split()
+|> Enum.map(&String.graphemes/1)
+|> Enum.map(&Enum.filter(&1, fn c -> c >= "0" && c <= "9" end))
+|> Enum.map(&[Enum.at(&1, 0), Enum.at(&1, -1)])
+|> Enum.map(&Enum.join/1)
+|> Enum.map(&String.to_integer/1)
+|> Enum.sum()
+```
 
-    ast = ast |> unpipe()
-    ops = parse_ops(ast) |> IO.inspect()
+```elixir
+# AOC 23 day 1, part 2
 
-    ast |> dbg()
+"""
+two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen
+"""
+|> String.split()
+|> Enum.map(
+  &Stream.unfold(&1, fn
+    "" -> nil
+    "zero" <> rest -> {"0", rest}
+    "one" <> rest -> {"1", rest}
+    "two" <> rest -> {"2", rest}
+    "three" <> rest -> {"3", rest}
+    "four" <> rest -> {"4", rest}
+    "five" <> rest -> {"5", rest}
+    "six" <> rest -> {"6", rest}
+    "seven" <> rest -> {"7", rest}
+    "eight" <> rest -> {"8", rest}
+    "nine" <> rest -> {"9", rest}
+    <<c::utf8, rest::binary>> -> {<<c>>, rest}
+  end)
+)
+|> Enum.map(&Enum.filter(&1, fn c -> c >= "0" && c <= "9" end))
+|> Enum.map(&[Enum.at(&1, 0), Enum.at(&1, -1)])
+|> Enum.map(&Enum.join/1)
+|> Enum.map(&String.to_integer/1)
+|> Enum.sum()
+```
+
+```elixir
+Regex.run(~r/(\d+) (\w+)/, "3 blue")
+```
+
+```elixir
+[game, rest] =
+  "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"
+  |> String.split(": ")
+
+"Game " <> game_id = game
+game_id = String.to_integer(game_id)
+
+sets =
+  rest
+  |> String.split("; ")
+  |> Enum.map(fn set ->
+    set
+    |> String.split(", ")
+    |> Enum.map(fn cube ->
+      [count, color] = String.split(cube)
+      {String.to_integer(count), color}
+    end)
+  end)
+
+{game_id, sets}
+```
+
+```elixir
+"Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green" |> String.replace(~r/^Game \d+: /, "")
+```
+
+```elixir
+# AOC 23 day 2, part 1
+
+"""
+Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+"""
+|> String.split("\n", trim: true)
+|> Enum.map(&Regex.scan(~r/((\d+) (blue|red|green))/, &1))
+|> Enum.map(&Enum.map(&1, fn [_, _, count, color] -> {String.to_integer(count), color} end))
+|> Enum.with_index(1)
+|> Enum.reject(
+  &Enum.any?(elem(&1, 0), fn
+    {n, "red"} when n > 12 -> true
+    {n, "green"} when n > 13 -> true
+    {n, "blue"} when n > 14 -> true
+    _ -> false
+  end)
+)
+|> Enum.map(&elem(&1, 1))
+|> Enum.sum()
+```
+
+```elixir
+Regex.scan(~r/((\d+) (blue|red|green))/, "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green")
+```
+
+```elixir
+max(2, nil || 0)
+```
+
+```elixir
+# AOC 23 day 2, part 2
+
+import String, only: [split: 3]
+import Enum, only: [map: 2, product: 1, sum: 1]
+
+"""
+Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+"""
+|> split("\n", trim: true)
+|> map(&Regex.scan(~r/((\d+) (blue|red|green))/, &1))
+|> map(&map(&1, fn [_, _, n, c] -> {String.to_integer(n), c} end))
+|> map(fn sets ->
+  sets |> Enum.reduce(%{}, fn {n, c}, acc -> update_in(acc[c], &max(&1 || 0, n)) end)
+end)
+|> map(&Map.values/1)
+|> map(&product/1)
+|> sum()
+```
+
+```elixir
+[:a, :b, :c] |> Enum.with_index(1)
+```
+
+```elixir
+zmod =
+  defmodule Zenum do
+    defmacro __using__([]) do
+      quote do
+        require Zenum
+        @before_compile Zenum
+
+        Module.register_attribute(__MODULE__, :zenums, accumulate: true)
+        Module.register_attribute(__MODULE__, :zenum_current, accumulate: true)
+      end
+    end
+
+    defmacro __before_compile__(_env) do
+      zenum_current = Module.get_attribute(__CALLER__.module, :zenum_current)
+
+      if zenum_current do
+        Module.put_attribute(__CALLER__.module, :zenums, zenum_current)
+        Module.delete_attribute(__CALLER__.module, :zenum_current)
+      end
+
+      zenums = Module.get_attribute(__CALLER__.module, :zenums)
+
+      Module.create(
+        Module.concat(__CALLER__.module, :ZenumImpl),
+        zenums
+        |> Enum.reject(&(&1 == []))
+        |> Enum.with_index()
+        |> Enum.map(fn {zenum, zid} ->
+          zenum2 =
+            zenum
+            |> Enum.with_index()
+            |> Enum.map(fn {{op_name, args, state_params}, op_id} ->
+              {zid, op_id, op_name, args, state_params}
+            end)
+
+          {zenum2, zid}
+        end)
+        |> Enum.map(fn {zenum, zid} ->
+          
+          state_args = Enum.flat_map(zenum, fn 
+            {_zid, _op_id, _op_name, _args, []} -> [] 
+            {_zid, op_id, op_name, _args, state_params} ->
+              state_params
+              |> Enum.map(& {op_id, op_name, &1})
+          end)
+          |> IO.inspect()
+          
+          done_fns = Enum.map(zenum, &build_done_fn/1)
+          
+          
+          quote do
+            def unquote(:"run_#{zid}")(data) do
+              data |> Enum.map(&(&1 * 2))
+            end
+          end
+        end),
+        Macro.Env.location(__CALLER__)
+      )
+
+      []
+    end
+
+    defp build_done_fn(zenum_op) do
+      zenum_op
+    end
+
+    # actual API
+    defmacro from_list(data) do
+      Module.put_attribute(__CALLER__.module, :zenum_current, {:from_list, [], [:data]})
+      data
+    end
+
+    defmacro map(data, f) do
+      Module.put_attribute(__CALLER__.module, :zenum_current, {:map, [f], []})
+      data
+    end
+
+    defmacro to_list(data) do
+      Module.put_attribute(
+        __CALLER__.module,
+        :zenums,
+        Module.get_attribute(__CALLER__.module, :zenum_current)
+      )
+
+      Module.delete_attribute(__CALLER__.module, :zenum_current)
+
+      Module.put_attribute(__CALLER__.module, :zenum_current, {:to_list, [], [:data]})
+
+      zid = Module.get_attribute(__CALLER__.module, :zid, 0)
+
+      Module.put_attribute(__CALLER__.module, :zid, zid + 1)
+
+      quote do
+        __MODULE__.ZenumImpl.unquote(:"run_#{zid}")(unquote(data))
+      end
+    end
   end
 
-  defp unpipe({:|>, _m, [pipe_ast, f_ast]}) do
-    {f, f_meta, f_args} = f_ast
-    {f, f_meta, [unpipe(pipe_ast) | f_args]}
-  end
+defmodule B do
+  use Zenum
 
-  defp unpipe(ast), do: ast
-
-  defp parse_ops({{:., _, [{:__aliases__, _, [:ZEnum]}, op]}, _, [prev | args]}) do
-    [parse_op(op, args) | parse_ops(prev)]
-  end
-
-  defp parse_ops(input_ast), do: {:input, [], input_ast}
-
-  defp parse_op(:take, [n]) do
-    {:take, [n], nil}
-  end
-
-  defp parse_op(:map, [f]) do
-    {:map, [], f}
+  def foo(data) do
+    data
+    |> Zenum.from_list()
+    |> Zenum.map(fn x -> x * 2 end)
+    |> Zenum.map(fn x -> x + 1 end)
+    |> Zenum.to_list()
   end
 end
+
+B.foo([1, 2, 3])
+```
+
+```elixir
+m2 = defmodule M2 do
+  # def do_work(data) do
+  #   data
+  #   |> Enum.filter(fn x -> rem(x, 2) == 3 end)
+  #   |> Enum.map(fn x -> x * 2 end)
+  #   |> Enum.take(5)
+  # end
+
+  def run(data) do
+    do_work2(data, 5, [])
+  end
+
+  defp do_work2(data, n, acc) when data == [] or n == 0 do
+    acc |> :lists.reverse()
+  end
+
+  defp do_work2([value|rest], n, acc) do
+    if rem(value, 3) == 0 do
+      do_work2(rest, n - 1, [value * 4 | acc])
+    else
+      do_work2(rest, n, acc)
+    end
+  end
+end
+
+M2.run((0..30) |> Enum.to_list()) |> dbg
+
+m2 |> elem(2) |> :beam_disasm.file()
+```
+
+```elixir
+rem(3, 2)
+```
+
+```elixir
+zmod |> elem(2) |> :beam_lib.chunks([:debug_info])
 ```
 
 ```elixir
 defmodule M do
-  require ZEnum
+  require Zenum
 
-  def stuff(data) do
-    data
-    |> ZEnum.from_list()
-    |> ZEnum.filter(fn record -> record.reference == :REF3 end)
-    |> ZEnum.flat_map(fn record -> record.events end)
-    |> ZEnum.filter(fn event -> event.included? end)
-    |> ZEnum.map(fn event -> {event.event_id, event.parent_id} end)
-    |> ZEnum.take(20)
-    |> ZEnum.to_list()
+  def foo(nums) do
+    # |> Zenum.from_list()
+    # |> Zenum.map(&times2/1)
+    # |> Zenum.map(&plus1/1)
+    # |> Zenum.to_list()
+    z0_from_list([], nums)
+  end
+
+  def times2(x), do: x * 2
+  def plus1(x), do: x + 1
+
+  defmacrop z3_to_list_push(z3_to_list, z0_from_list, v) do
+    quote do
+      z0_from_list([unquote(v) | unquote(z3_to_list)], unquote(z0_from_list))
+    end
+
+    # |> tap(fn ast -> ast |> Macro.expand(__CALLER__) |> Macro.to_string() |> IO.inspect() end)
+  end
+
+  defmacrop z3_to_list(z3_to_list) do
+    quote do
+      :lists.reverse(unquote(z3_to_list))
+    end
+
+    # |> tap(fn ast -> ast |> Macro.expand(__CALLER__) |> Macro.to_string() |> IO.inspect() end)
+  end
+
+  defmacrop z2_map_push(z3_to_list, z0_from_list, v) do
+    quote do
+      z3_to_list_push(unquote(z3_to_list), unquote(z0_from_list), (&plus1/1).(unquote(v)))
+    end
+
+    # |> tap(fn ast -> ast |> Macro.expand(__CALLER__) |> Macro.to_string() |> IO.inspect() end)
+  end
+
+  defmacrop z1_map_push(z3_to_list, z0_from_list, v) do
+    quote do
+      z2_map_push(unquote(z3_to_list), unquote(z0_from_list), (&times2/1).(unquote(v)))
+    end
+
+    # |> tap(fn ast -> ast |> Macro.expand(__CALLER__) |> Macro.to_string() |> IO.inspect() end)
+  end
+
+  def z0_from_list(z3_to_list, z0_from_list) do
+    case z0_from_list do
+      [v | new_z0_from_list] -> z1_map_push(z3_to_list, new_z0_from_list, v)
+      _ -> z3_to_list(z3_to_list)
+    end
   end
 end
 ```
 
 ```elixir
-quote do
-  take(
-    map(
-      filter(
-        flat_map(
-          filter(
-            data,
-            fn record -> record.reference == :REF3 end
-          ),
-          fn record -> record.events end
-        ),
-        fn event -> event.included? end
-      ),
-      fn event -> {event.event_id, event.parent_id} end
-    ),
-    20
-  )
-end
+M.foo([2,3,4])
 ```
