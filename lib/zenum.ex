@@ -31,65 +31,65 @@ defmodule Zenum do
           # z_0_3 - from_list
           unquote(push_asts)
 
-          def z_0_0_push(unquote_splicing(params_ast), value) do
-            z_0_1_next([value | op_0_acc], op_3_data)
+          def __z_0_0_push__(unquote_splicing(params_ast), value) do
+            __z_0_1_next__([value | op_0_acc], op_3_data)
           end
 
-          def z_0_1_push(unquote_splicing(params_ast), value) do
+          def __z_0_1_push__(unquote_splicing(params_ast), value) do
             if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
-              z_0_0_push(unquote_splicing(params_ast), value)
+              __z_0_0_push__(unquote_splicing(params_ast), value)
             else
-              z_0_1_next(unquote_splicing(params_ast))
+              __z_0_1_next__(unquote_splicing(params_ast))
             end
           end
 
-          def z_0_2_push(unquote_splicing(params_ast), value) do
-            z_0_1_push(
+          def __z_0_2_push__(unquote_splicing(params_ast), value) do
+            __z_0_1_push__(
               unquote_splicing(params_ast),
               unquote(Map.fetch!(args, {2, :map, :f})).(value)
             )
           end
 
-          def z_0_0_done(unquote_splicing(params_ast)) do
+          def __z_0_0_done__(unquote_splicing(params_ast)) do
             Enum.reverse(op_0_acc)
           end
 
-          def z_0_1_done(unquote_splicing(params_ast)) do
-            z_0_0_done(unquote_splicing(params_ast))
+          def __z_0_1_done__(unquote_splicing(params_ast)) do
+            __z_0_0_done__(unquote_splicing(params_ast))
           end
 
-          def z_0_2_done(unquote_splicing(params_ast)) do
-            z_0_1_done(unquote_splicing(params_ast))
+          def __z_0_2_done__(unquote_splicing(params_ast)) do
+            __z_0_1_done__(unquote_splicing(params_ast))
           end
 
-          def z_0_0_done(unquote_splicing(params_ast)) do
-            z_0_2_done(unquote_splicing(params_ast))
+          def __z_0_0_done__(unquote_splicing(params_ast)) do
+            __z_0_2_done__(unquote_splicing(params_ast))
           end
 
-          def z_0_0_next(unquote_splicing(params_ast)) do
+          def __z_0_0_next__(unquote_splicing(params_ast)) do
             case op_3_data do
               [value | new_op_3_data] ->
-                z_0_2_push(op_0_acc, new_op_3_data, value)
+                __z_0_2_push__(op_0_acc, new_op_3_data, value)
 
               [] ->
-                z_0_0_done(unquote_splicing(params_ast))
+                __z_0_0_done__(unquote_splicing(params_ast))
             end
           end
 
-          def z_0_2_next(unquote_splicing(params_ast)) do
-            z_0_0_next(unquote_splicing(params_ast))
+          def __z_0_2_next__(unquote_splicing(params_ast)) do
+            __z_0_0_next__(unquote_splicing(params_ast))
           end
 
-          def z_0_1_next(unquote_splicing(params_ast)) do
-            z_0_2_next(unquote_splicing(params_ast))
+          def __z_0_1_next__(unquote_splicing(params_ast)) do
+            __z_0_2_next__(unquote_splicing(params_ast))
           end
 
-          def z_0_0_next(unquote_splicing(params_ast)) do
-            z_0_1_next(unquote_splicing(params_ast))
+          def __z_0_0_next__(unquote_splicing(params_ast)) do
+            __z_0_1_next__(unquote_splicing(params_ast))
           end
 
           defp unquote(:"z_#{id}_run")(unquote_splicing(params_ast)) do
-            z_0_0_next(unquote_splicing(params_ast))
+            __z_0_0_next__(unquote_splicing(params_ast))
           end
         end
       ]
