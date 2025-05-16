@@ -169,15 +169,16 @@ defmodule Zenum do
 
   ### build ASTs
 
-  defp build_push_asts(id, ops, ctx) do
-    # z_0_2 - map
-    # def __z_0_2_push__(unquote_splicing(params_ast), value) do
-    #   __z_0_1_push__(
-    #     unquote_splicing(params_ast),
-    #     unquote(Map.fetch!(args, {2, :map, :f})).(value)
-    #   )
-    # end
+  defp push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
+  defp next_fn(id, n), do: :"__z_#{id}_#{n + 1}_next__"
+  defp param(n, name), do: :"op_#{n}_#{name}"
 
+  defp set_param(params_ast, param, new_param_ast) do
+    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param end)
+    List.replace_at(params_ast, i, new_param_ast)
+  end
+
+  defp build_push_asts(id, ops, ctx) do
     ops_states = op_states(ops)
     params_ast = op_states_params_ast(ops_states, ctx)
 
@@ -221,14 +222,5 @@ defmodule Zenum do
 
   defp push_ast(_, _, _, _) do
     []
-  end
-
-  defp push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
-  defp next_fn(id, n), do: :"__z_#{id}_#{n + 1}_next__"
-  defp param(n, name), do: :"op_#{n}_#{name}"
-
-  defp set_param(params_ast, param, new_param_ast) do
-    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param end)
-    List.replace_at(params_ast, i, new_param_ast)
   end
 end
