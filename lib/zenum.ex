@@ -20,30 +20,16 @@ defmodule Zenum do
       params_ast = op_states_params_ast(ops_states, __CALLER__.module)
 
       push_asts = build_push_asts(id, ops, __CALLER__.module)
+      done_asts = build_done_asts(id, ops, __CALLER__.module)
 
       [
+        push_asts,
+        done_asts,
         quote context: __CALLER__.module do
           # z_0_0 - to_list
           # z_0_1 - filter
           # z_0_2 - map
           # z_0_3 - from_list
-          unquote(push_asts)
-
-          def __z_0_0_done__(unquote_splicing(params_ast)) do
-            Enum.reverse(op_0_acc)
-          end
-
-          def __z_0_1_done__(unquote_splicing(params_ast)) do
-            __z_0_0_done__(unquote_splicing(params_ast))
-          end
-
-          def __z_0_2_done__(unquote_splicing(params_ast)) do
-            __z_0_1_done__(unquote_splicing(params_ast))
-          end
-
-          def __z_0_3_done__(unquote_splicing(params_ast)) do
-            __z_0_2_done__(unquote_splicing(params_ast))
-          end
 
           def __z_0_3_next__(unquote_splicing(params_ast)) do
             case op_3_data do
@@ -170,7 +156,8 @@ defmodule Zenum do
   ### build ASTs
 
   defp push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
-  defp next_fn(id, n), do: :"__z_#{id}_#{n + 1}_next__"
+  defp next_fn(id, n), do: :"__z_#{id}_#{n}_next__"
+  defp done_fn(id, n), do: :"__z_#{id}_#{n}_done__"
   defp param(n, name), do: :"op_#{n}_#{name}"
 
   defp set_param(params_ast, param, new_param_ast) do
@@ -191,7 +178,7 @@ defmodule Zenum do
 
     quote context: ctx do
       def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
-        unquote(next_fn(id, n))(
+        unquote(next_fn(id, n + 1))(
           unquote_splicing(
             set_param(ps, acc, quote(context: ctx, do: [v | unquote(Macro.var(acc, ctx))]))
           )
@@ -206,7 +193,7 @@ defmodule Zenum do
         if unquote(f).(v) do
           unquote(push_fn(id, n - 1))(unquote_splicing(ps), v)
         else
-          unquote(next_fn(id, n))(unquote_splicing(ps))
+          unquote(next_fn(id, n + 1))(unquote_splicing(ps))
         end
       end
     end
@@ -220,7 +207,30 @@ defmodule Zenum do
     end
   end
 
-  defp push_ast(_, _, _, _) do
+  defp push_ast({_n, :from_list, _, _}, _, _, _) do
     []
+  end
+
+  defp build_done_asts(id, ops, ctx) do
+    ops_states = op_states(ops)
+    params_ast = op_states_params_ast(ops_states, ctx)
+
+    ops |> Enum.map(&done_ast(&1, id, params_ast, ctx))
+  end
+
+  defp done_ast({n, :to_list, _, _}, id, ps, ctx) do
+    quote context: ctx do
+      def unquote(done_fn(id, n))(unquote_splicing(ps)) do
+        Enum.reverse(unquote(Macro.var(param(n, :acc), ctx)))
+      end
+    end
+  end
+
+  defp done_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :from_list, :map] do
+    quote context: ctx do
+      def unquote(done_fn(id, n))(unquote_splicing(ps)) do
+        unquote(done_fn(id, n - 1))(unquote_splicing(ps))
+      end
+    end
   end
 end
