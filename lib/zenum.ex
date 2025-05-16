@@ -31,18 +31,6 @@ defmodule Zenum do
           # z_0_3 - from_list
           unquote(push_asts)
 
-          # def __z_0_0_push__(unquote_splicing(params_ast), value) do
-          # __z_0_1_next__([value | op_0_acc], op_3_data)
-          # end
-
-          def __z_0_1_push__(unquote_splicing(params_ast), value) do
-            if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
-              __z_0_0_push__(unquote_splicing(params_ast), value)
-            else
-              __z_0_1_next__(unquote_splicing(params_ast))
-            end
-          end
-
           def __z_0_2_push__(unquote_splicing(params_ast), value) do
             __z_0_1_push__(
               unquote_splicing(params_ast),
@@ -62,22 +50,22 @@ defmodule Zenum do
             __z_0_1_done__(unquote_splicing(params_ast))
           end
 
-          def __z_0_0_done__(unquote_splicing(params_ast)) do
+          def __z_0_3_done__(unquote_splicing(params_ast)) do
             __z_0_2_done__(unquote_splicing(params_ast))
           end
 
-          def __z_0_0_next__(unquote_splicing(params_ast)) do
+          def __z_0_3_next__(unquote_splicing(params_ast)) do
             case op_3_data do
               [value | new_op_3_data] ->
                 __z_0_2_push__(op_0_acc, new_op_3_data, value)
 
               [] ->
-                __z_0_0_done__(unquote_splicing(params_ast))
+                __z_0_3_done__(unquote_splicing(params_ast))
             end
           end
 
           def __z_0_2_next__(unquote_splicing(params_ast)) do
-            __z_0_0_next__(unquote_splicing(params_ast))
+            __z_0_3_next__(unquote_splicing(params_ast))
           end
 
           def __z_0_1_next__(unquote_splicing(params_ast)) do
@@ -206,27 +194,13 @@ defmodule Zenum do
   ### build ASTs
 
   defp build_push_asts(id, ops, ctx) do
-    # z_0_0 - to_list
-    # z_0_1 - filter
     # z_0_2 - map
-    # z_0_3 - from_list
-
-    # def __z_0_1_push__(unquote_splicing(params_ast), value) do
-    #   if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
-    #     __z_0_0_push__(unquote_splicing(params_ast), value)
-    #   else
-    #     __z_0_1_next__(unquote_splicing(params_ast))
-    #   end
-    # end
-
     # def __z_0_2_push__(unquote_splicing(params_ast), value) do
     #   __z_0_1_push__(
     #     unquote_splicing(params_ast),
     #     unquote(Map.fetch!(args, {2, :map, :f})).(value)
     #   )
     # end
-
-    # dbg(ops)
 
     ops_states = op_states(ops)
     params_ast = op_states_params_ast(ops_states, ctx)
@@ -245,6 +219,18 @@ defmodule Zenum do
             set_param(ps, acc, quote(context: ctx, do: [v | unquote(Macro.var(acc, ctx))]))
           )
         )
+      end
+    end
+  end
+
+  defp push_ast({n, :filter, _, args}, id, ps, ctx) do
+    quote context: ctx do
+      def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
+        if unquote(Keyword.fetch!(args, :f)).(v) do
+          unquote(push_fn(id, n - 1))(unquote_splicing(ps), v)
+        else
+          unquote(next_fn(id, n))(unquote_splicing(ps))
+        end
       end
     end
   end
