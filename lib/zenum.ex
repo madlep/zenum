@@ -21,7 +21,7 @@ defmodule Zenum do
 
       args = ops |> op_args()
 
-      push_asts = build_push_asts(ops)
+      push_asts = build_push_asts(id, ops, __CALLER__.module)
 
       [
         quote context: __CALLER__.module do
@@ -31,9 +31,9 @@ defmodule Zenum do
           # z_0_3 - from_list
           unquote(push_asts)
 
-          def __z_0_0_push__(unquote_splicing(params_ast), value) do
-            __z_0_1_next__([value | op_0_acc], op_3_data)
-          end
+          # def __z_0_0_push__(unquote_splicing(params_ast), value) do
+          # __z_0_1_next__([value | op_0_acc], op_3_data)
+          # end
 
           def __z_0_1_push__(unquote_splicing(params_ast), value) do
             if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
@@ -204,13 +204,68 @@ defmodule Zenum do
   end
 
   ### build ASTs
-  defp build_push_asts(ops) do
-    # TODO
 
-    dbg(ops)
-    dbg(op_states(ops))
-    dbg(op_args(ops))
+  # defp set_state_param(params_ast, n, param) do
+  #   # TODO
+  # end
 
+  defp build_push_asts(id, ops, context) do
+    # z_0_0 - to_list
+    # z_0_1 - filter
+    # z_0_2 - map
+    # z_0_3 - from_list
+
+    # def __z_0_0_push__(unquote_splicing(params_ast), value) do
+    #   __z_0_1_next__([value | op_0_acc], op_3_data)
+    # end
+
+    # def __z_0_1_push__(unquote_splicing(params_ast), value) do
+    #   if unquote(Map.fetch!(args, {1, :filter, :f})).(value) do
+    #     __z_0_0_push__(unquote_splicing(params_ast), value)
+    #   else
+    #     __z_0_1_next__(unquote_splicing(params_ast))
+    #   end
+    # end
+
+    # def __z_0_2_push__(unquote_splicing(params_ast), value) do
+    #   __z_0_1_push__(
+    #     unquote_splicing(params_ast),
+    #     unquote(Map.fetch!(args, {2, :map, :f})).(value)
+    #   )
+    # end
+
+    # dbg(ops)
+
+    ops_states = op_states(ops)
+    params_ast = op_states_params_ast(ops_states, context)
+
+    ops
+    |> Enum.map(&push_ast(&1, id, params_ast, context))
+  end
+
+  defp push_ast({n, :to_list, _, _}, id, params_ast, context) do
+    value_acc_ast =
+      quote context: context do
+        [value | unquote(Macro.var(param(n, :acc), context))]
+      end
+
+    quote context: context do
+      def unquote(push_fn(id, n))(unquote_splicing(params_ast), value) do
+        unquote(next_fn(id, n))(unquote_splicing(set_param(params_ast, n, :acc, value_acc_ast)))
+      end
+    end
+  end
+
+  defp push_ast(_, _, _, _) do
     []
+  end
+
+  defp push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
+  defp next_fn(id, n), do: :"__z_#{id}_#{n + 1}_next__"
+  defp param(n, name), do: :"op_#{n}_#{name}"
+
+  defp set_param(params_ast, n, name, new_param_ast) do
+    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param(n, name) end)
+    List.replace_at(params_ast, i, new_param_ast)
   end
 end
