@@ -1,5 +1,5 @@
 defmodule Bench.Transforms.ZenumFlatTupleState do
-  def run(data), do: z5_take({[], 20, [], data})
+  def run(data, take_n), do: z5_take({[], take_n, [], data})
 
   defp z1_filter({_z5_acc, _z5_n, _z2_acc, []}), do: :done
 

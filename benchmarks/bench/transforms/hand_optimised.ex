@@ -1,5 +1,5 @@
 defmodule Bench.Transforms.HandOptimised do
-  def run(data), do: do_opt([], 20, [], data)
+  def run(data, take_n), do: do_opt([], take_n, [], data)
 
   # take finished (take_n == 0) OR end of data (flatmap_buffer == [] AND data == [])
   defp do_opt(take_acc, take_n, flatmap_buffer, data)

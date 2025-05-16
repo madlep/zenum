@@ -5,13 +5,13 @@ defmodule Bench.Transforms.ZenumIter do
   alias Bench.Transforms.ZenumIter.ZMap
   alias Bench.Transforms.ZenumIter.ZTake
 
-  def run(data) do
+  def run(data, take_n) do
     data
     |> filter(fn record -> record.reference == :REF3 end)
     |> flat_map(fn record -> record.events end)
     |> filter(fn event -> event.included? end)
     |> map(fn event -> {event.event_id, event.parent_id} end)
-    |> take(20)
+    |> take(take_n)
     |> collect()
   end
 

@@ -1,5 +1,5 @@
 defmodule Bench.Transforms.ZenumArgsState do
-  def run(data), do: z5_take([], 20, [], data)
+  def run(data, take_n), do: z5_take([], take_n, [], data)
 
   defp z1_filter([]), do: :done
 

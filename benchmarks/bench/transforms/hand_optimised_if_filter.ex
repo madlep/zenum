@@ -1,5 +1,5 @@
 defmodule Bench.Transforms.HandOptimisedIfFilter do
-  def run(data), do: do_opt([], 20, [], data)
+  def run(data, take_n), do: do_opt([], take_n, [], data)
 
   # take finished - no more data
   defp do_opt(z5_acc, _n, [], []), do: :lists.reverse(z5_acc)

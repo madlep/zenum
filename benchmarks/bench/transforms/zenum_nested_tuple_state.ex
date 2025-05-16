@@ -1,7 +1,7 @@
 defmodule Bench.Transforms.ZenumNestedTupleState do
   @compile {:inline, z0_data: 1, z4_map: 1, z5_take: 1}
 
-  def run(data), do: z6_run({[], {20, {[], data}}})
+  def run(data, take_n), do: z6_run({[], {take_n, {[], data}}})
 
   defp z0_data([value | new_state]), do: {value, new_state}
   defp z0_data(_), do: {}

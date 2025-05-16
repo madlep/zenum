@@ -71,5 +71,5 @@ defmodule Bench.Transforms.ZenumArgsStateTCO do
 
   defp z6_to_list_push(z6_list, _z5_n, _z2_buffer, _z0_list), do: :lists.reverse(z6_list)
 
-  def run(data), do: z6_to_list([], 20, [], data)
+  def run(data, take_n), do: z6_to_list([], take_n, [], data)
 end

@@ -1,9 +1,9 @@
 defmodule Bench.Transforms.ZenumListStackState do
-  def run(data),
+  def run(data, take_n),
     do:
       z5_take([
         [],
-        0,
+        take_n,
         []
         | data
       ])
@@ -48,11 +48,11 @@ defmodule Bench.Transforms.ZenumListStackState do
     end
   end
 
-  defp z5_take([values, 20 | _state]), do: :lists.reverse(values)
+  defp z5_take([values, 0 | _state]), do: :lists.reverse(values)
 
   defp z5_take([values, n | state]) do
     case z4_map(state) do
-      [value | new_state] -> z5_take([[value | values], n + 1 | new_state])
+      [value | new_state] -> z5_take([[value | values], n - 1 | new_state])
       :done -> :lists.reverse(values)
     end
   end

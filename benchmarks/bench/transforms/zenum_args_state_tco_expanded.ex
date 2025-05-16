@@ -98,9 +98,9 @@ defmodule Bench.Transforms.ZenumArgsStateTCOExpanded do
     end
   end
 
-  def run(data) do
+  def run(data, take_n) do
     z6_list = []
-    z5_n = 20
+    z5_n = take_n
     z2_buffer = []
     z0_list = data
 

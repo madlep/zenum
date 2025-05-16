@@ -96,5 +96,5 @@ defmodule Bench.Transforms.ZenumNestedTupleMacroState do
   #   end
   # end
 
-  def run(data), do: z5_take_rec({[], 20, {[], data}})
+  def run(data, take_n), do: z5_take_rec({[], take_n, {[], data}})
 end
