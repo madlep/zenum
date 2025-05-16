@@ -19,8 +19,6 @@ defmodule Zenum do
 
       params_ast = op_states_params_ast(ops_states, __CALLER__.module)
 
-      args = ops |> op_args()
-
       push_asts = build_push_asts(id, ops, __CALLER__.module)
 
       [
@@ -30,13 +28,6 @@ defmodule Zenum do
           # z_0_2 - map
           # z_0_3 - from_list
           unquote(push_asts)
-
-          def __z_0_2_push__(unquote_splicing(params_ast), value) do
-            __z_0_1_push__(
-              unquote_splicing(params_ast),
-              unquote(Map.fetch!(args, {2, :map, :f})).(value)
-            )
-          end
 
           def __z_0_0_done__(unquote_splicing(params_ast)) do
             Enum.reverse(op_0_acc)
@@ -139,7 +130,7 @@ defmodule Zenum do
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, op_name]}, _, [z_args, f]}, n)
        when op_name in [:map, :filter] do
-    [op(n, op_name, [], f: f) | build_ops(z_args, n + 1)]
+    [op(n, op_name, [], %{f: f}) | build_ops(z_args, n + 1)]
   end
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :from_list]}, _, [list]}, n) do
@@ -176,21 +167,6 @@ defmodule Zenum do
     |> Enum.map(&elem(&1, 3))
   end
 
-  defp op_args(ops) do
-    ops
-    |> Enum.flat_map(fn
-      {_n, _op_name, _op_state, []} ->
-        []
-
-      {n, op_name, _op_state, op_args} ->
-        op_args
-        |> Enum.map(fn {arg_name, arg_value} ->
-          {{n, op_name, arg_name}, arg_value}
-        end)
-    end)
-    |> Enum.into(%{})
-  end
-
   ### build ASTs
 
   defp build_push_asts(id, ops, ctx) do
@@ -223,14 +199,22 @@ defmodule Zenum do
     end
   end
 
-  defp push_ast({n, :filter, _, args}, id, ps, ctx) do
+  defp push_ast({n, :filter, _, %{f: f}}, id, ps, ctx) do
     quote context: ctx do
       def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
-        if unquote(Keyword.fetch!(args, :f)).(v) do
+        if unquote(f).(v) do
           unquote(push_fn(id, n - 1))(unquote_splicing(ps), v)
         else
           unquote(next_fn(id, n))(unquote_splicing(ps))
         end
+      end
+    end
+  end
+
+  defp push_ast({n, :map, _, %{f: f}}, id, ps, ctx) do
+    quote context: ctx do
+      def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
+        unquote(push_fn(id, n - 1))(unquote_splicing(ps), unquote(f).(v))
       end
     end
   end
