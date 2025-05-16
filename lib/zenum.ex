@@ -20,11 +20,11 @@ defmodule Zenum do
       params_ast = op_states_params_ast(ops_states, __CALLER__.module)
 
       push_asts = build_push_asts(id, ops, __CALLER__.module)
-      done_asts = build_done_asts(id, ops, __CALLER__.module)
+      return_asts = build_return_asts(id, ops, __CALLER__.module)
 
       [
         push_asts,
-        done_asts,
+        return_asts,
         quote context: __CALLER__.module do
           # z_0_0 - to_list
           # z_0_1 - filter
@@ -37,7 +37,7 @@ defmodule Zenum do
                 __z_0_2_push__(op_0_acc, new_op_3_data, value)
 
               [] ->
-                __z_0_3_done__(unquote_splicing(params_ast))
+                __z_0_3_return__(unquote_splicing(params_ast))
             end
           end
 
@@ -157,7 +157,7 @@ defmodule Zenum do
 
   defp push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
   defp next_fn(id, n), do: :"__z_#{id}_#{n}_next__"
-  defp done_fn(id, n), do: :"__z_#{id}_#{n}_done__"
+  defp return_fn(id, n), do: :"__z_#{id}_#{n}_return__"
   defp param(n, name), do: :"op_#{n}_#{name}"
 
   defp set_param(params_ast, param, new_param_ast) do
@@ -211,25 +211,25 @@ defmodule Zenum do
     []
   end
 
-  defp build_done_asts(id, ops, ctx) do
+  defp build_return_asts(id, ops, ctx) do
     ops_states = op_states(ops)
     params_ast = op_states_params_ast(ops_states, ctx)
 
-    ops |> Enum.map(&done_ast(&1, id, params_ast, ctx))
+    ops |> Enum.map(&return_ast(&1, id, params_ast, ctx))
   end
 
-  defp done_ast({n, :to_list, _, _}, id, ps, ctx) do
+  defp return_ast({n, :to_list, _, _}, id, ps, ctx) do
     quote context: ctx do
-      def unquote(done_fn(id, n))(unquote_splicing(ps)) do
+      def unquote(return_fn(id, n))(unquote_splicing(ps)) do
         Enum.reverse(unquote(Macro.var(param(n, :acc), ctx)))
       end
     end
   end
 
-  defp done_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :from_list, :map] do
+  defp return_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :from_list, :map] do
     quote context: ctx do
-      def unquote(done_fn(id, n))(unquote_splicing(ps)) do
-        unquote(done_fn(id, n - 1))(unquote_splicing(ps))
+      def unquote(return_fn(id, n))(unquote_splicing(ps)) do
+        unquote(return_fn(id, n - 1))(unquote_splicing(ps))
       end
     end
   end
