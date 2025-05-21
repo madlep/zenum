@@ -1,6 +1,4 @@
 defmodule Zenum do
-  alias Zenum.Ops.FromList
-
   import Zenum.AST
 
   defmacro __using__([]) do
@@ -86,7 +84,7 @@ defmodule Zenum do
   end
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :from_list]}, _, args}, n) do
-    [FromList.build_op(n, args)]
+    [Zenum.Ops.FromList.build_op(n, args)]
   end
 
   defp op_states(ops) do
@@ -101,8 +99,8 @@ defmodule Zenum do
           {n, op_name, param, state_value}
         end)
 
-      op = %FromList{} ->
-        FromList.state(op)
+      op when is_struct(op) ->
+        Zenum.Op.state(op)
     end)
   end
 
@@ -166,8 +164,8 @@ defmodule Zenum do
     end
   end
 
-  defp push_ast(op = %FromList{}, id, params, context) do
-    FromList.push_fn_ast(op, id, params, context)
+  defp push_ast(op, id, params, context) when is_struct(op) do
+    Zenum.Op.push_fn_ast(op, id, params, context)
   end
 
   defp build_return_asts(id, ops, ctx) do
@@ -193,8 +191,8 @@ defmodule Zenum do
     end
   end
 
-  defp return_ast(op = %FromList{}, id, params, context) do
-    FromList.return_fn_ast(op, id, params, context)
+  defp return_ast(op, id, params, context) when is_struct(op) do
+    Zenum.Op.return_fn_ast(op, id, params, context)
   end
 
   defp build_next_asts(id, ops, ctx) do
@@ -204,8 +202,8 @@ defmodule Zenum do
     ops |> Enum.map(&next_ast(&1, id, params_ast, ctx))
   end
 
-  defp next_ast(op = %FromList{}, id, params, context) do
-    FromList.next_fn_ast(op, id, params, context)
+  defp next_ast(op, id, params, context) when is_struct(op) do
+    Zenum.Op.next_fn_ast(op, id, params, context)
   end
 
   defp next_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :map, :to_list] do
