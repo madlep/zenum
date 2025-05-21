@@ -1,4 +1,8 @@
 defmodule Zenum do
+  alias Zenum.Ops.FromList
+
+  import Zenum.AST
+
   defmacro __using__([]) do
     quote do
       require Zenum
@@ -81,8 +85,8 @@ defmodule Zenum do
     [op(n, op_name, [], %{f: f}) | build_ops(z_args, n + 1)]
   end
 
-  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :from_list]}, _, [list]}, n) do
-    [op(n, :from_list, [data: list], [])]
+  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :from_list]}, _, args}, n) do
+    [FromList.build_op(n, args)]
   end
 
   defp op_states(ops) do
@@ -96,6 +100,9 @@ defmodule Zenum do
         |> Enum.map(fn {param, state_value} ->
           {n, op_name, param, state_value}
         end)
+
+      op = %FromList{} ->
+        FromList.state(op)
     end)
   end
 
@@ -116,16 +123,6 @@ defmodule Zenum do
   end
 
   ### build ASTs
-
-  defp push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
-  defp next_fn(id, n), do: :"__z_#{id}_#{n}_next__"
-  defp return_fn(id, n), do: :"__z_#{id}_#{n}_return__"
-  defp param(n, name), do: :"op_#{n}_#{name}"
-
-  defp set_param(params_ast, param, new_param_ast) do
-    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param end)
-    List.replace_at(params_ast, i, new_param_ast)
-  end
 
   defp build_push_asts(id, ops, ctx) do
     ops_states = op_states(ops)
@@ -169,8 +166,8 @@ defmodule Zenum do
     end
   end
 
-  defp push_ast({_n, :from_list, _, _}, _, _, _) do
-    []
+  defp push_ast(op = %FromList{}, id, params, context) do
+    FromList.push_fn_ast(op, id, params, context)
   end
 
   defp build_return_asts(id, ops, ctx) do
@@ -188,12 +185,16 @@ defmodule Zenum do
     end
   end
 
-  defp return_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :from_list, :map] do
+  defp return_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :map] do
     quote context: ctx do
       def unquote(return_fn(id, n))(unquote_splicing(ps)) do
         unquote(return_fn(id, n - 1))(unquote_splicing(ps))
       end
     end
+  end
+
+  defp return_ast(op = %FromList{}, id, params, context) do
+    FromList.return_fn_ast(op, id, params, context)
   end
 
   defp build_next_asts(id, ops, ctx) do
@@ -203,23 +204,8 @@ defmodule Zenum do
     ops |> Enum.map(&next_ast(&1, id, params_ast, ctx))
   end
 
-  defp next_ast({n, :from_list, _, _}, id, ps, ctx) do
-    data = param(n, :data)
-
-    quote context: ctx do
-      def unquote(next_fn(id, n))(unquote_splicing(ps)) do
-        case unquote(Macro.var(data, ctx)) do
-          [value | new_data] ->
-            unquote(push_fn(id, n - 1))(
-              unquote_splicing(set_param(ps, data, Macro.var(:new_data, ctx))),
-              value
-            )
-
-          [] ->
-            unquote(return_fn(id, n))(unquote_splicing(ps))
-        end
-      end
-    end
+  defp next_ast(op = %FromList{}, id, params, context) do
+    FromList.next_fn_ast(op, id, params, context)
   end
 
   defp next_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :map, :to_list] do
