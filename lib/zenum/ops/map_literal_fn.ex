@@ -10,26 +10,26 @@ defmodule Zenum.Ops.MapLiteralFn do
       []
     end
 
-    def next_fn_ast(op = %Zenum.Ops.MapLiteralFn{}, id, params, context) do
+    def next_fun_ast(op = %Zenum.Ops.MapLiteralFn{}, id, params, context) do
       quote context: context do
-        def unquote(next_fn(id, op.n))(unquote_splicing(params)) do
-          unquote(next_fn(id, op.n + 1))(unquote_splicing(params))
+        def unquote(next_fun_name(id, op.n))(unquote_splicing(params)) do
+          unquote(next_fun_name(id, op.n + 1))(unquote_splicing(params))
         end
       end
     end
 
-    def push_fn_ast(op = %Zenum.Ops.MapLiteralFn{}, id, params, context) do
+    def push_fun_ast(op = %Zenum.Ops.MapLiteralFn{}, id, params, context) do
       quote context: context do
-        def unquote(push_fn(id, op.n))(unquote_splicing(params), value) do
-          unquote(push_fn(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(value))
+        def unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
+          unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(value))
         end
       end
     end
 
-    def return_fn_ast(op = %Zenum.Ops.MapLiteralFn{}, id, params, context) do
+    def return_fun_ast(op = %Zenum.Ops.MapLiteralFn{}, id, params, context) do
       quote context: context do
-        def unquote(return_fn(id, op.n))(unquote_splicing(params)) do
-          unquote(return_fn(id, op.n - 1))(unquote_splicing(params))
+        def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
+          unquote(return_fun_name(id, op.n - 1))(unquote_splicing(params))
         end
       end
     end

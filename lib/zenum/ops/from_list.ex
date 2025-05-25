@@ -10,34 +10,34 @@ defmodule Zenum.Ops.FromList do
       [{op.n, :from_list, :data, op.data}]
     end
 
-    def next_fn_ast(op = %Zenum.Ops.FromList{}, id, params, context) do
+    def next_fun_ast(op = %Zenum.Ops.FromList{}, id, params, context) do
       data = fun_param_name(op.n, :data)
 
       quote context: context do
-        def unquote(next_fn(id, op.n))(unquote_splicing(params)) do
+        def unquote(next_fun_name(id, op.n))(unquote_splicing(params)) do
           case unquote(Macro.var(data, context)) do
             [value | new_data] ->
-              unquote(push_fn(id, op.n - 1))(
+              unquote(push_fun_name(id, op.n - 1))(
                 unquote_splicing(set_param(params, data, Macro.var(:new_data, context))),
                 value
               )
 
             [] ->
-              unquote(return_fn(id, op.n))(unquote_splicing(params))
+              unquote(return_fun_name(id, op.n))(unquote_splicing(params))
           end
         end
       end
     end
 
     # no-op - shouldn't be called
-    def push_fn_ast(_op = %Zenum.Ops.FromList{}, _id, _params, _context) do
+    def push_fun_ast(_op = %Zenum.Ops.FromList{}, _id, _params, _context) do
       []
     end
 
-    def return_fn_ast(op = %Zenum.Ops.FromList{}, id, params, context) do
+    def return_fun_ast(op = %Zenum.Ops.FromList{}, id, params, context) do
       quote context: context do
-        def unquote(return_fn(id, op.n))(unquote_splicing(params)) do
-          unquote(return_fn(id, op.n - 1))(unquote_splicing(params))
+        def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
+          unquote(return_fun_name(id, op.n - 1))(unquote_splicing(params))
         end
       end
     end

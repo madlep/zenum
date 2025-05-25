@@ -14,29 +14,29 @@ defmodule Zenum.AST do
   @doc """
   Generates function name for pushing values forward
 
-      iex> Zenum.AST.push_fn(0, 2)
+      iex> Zenum.AST.push_fun_name(0, 2)
       :__z_0_2_push__
   """
-  @spec push_fn(Zenum.id(), Op.op_number()) :: fun_name()
-  def push_fn(id, n), do: :"__z_#{id}_#{n}_push__"
+  @spec push_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
+  def push_fun_name(id, n), do: :"__z_#{id}_#{n}_push__"
 
   @doc """
   Generates function name for pulling next values
 
-      iex> Zenum.AST.next_fn(0, 2)
+      iex> Zenum.AST.next_fun_name(0, 2)
       :__z_0_2_next__
   """
-  @spec next_fn(Zenum.id(), Op.op_number()) :: fun_name()
-  def next_fn(id, n), do: :"__z_#{id}_#{n}_next__"
+  @spec next_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
+  def next_fun_name(id, n), do: :"__z_#{id}_#{n}_next__"
 
   @doc """
   Generates function name for returning at end of iteration
 
-      iex> Zenum.AST.return_fn(0, 2)
+      iex> Zenum.AST.return_fun_name(0, 2)
       :__z_0_2_return__
   """
-  @spec return_fn(Zenum.id(), Op.op_number()) :: fun_name()
-  def return_fn(id, n), do: :"__z_#{id}_#{n}_return__"
+  @spec return_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
+  def return_fun_name(id, n), do: :"__z_#{id}_#{n}_return__"
 
   @doc """
   Generates function param name used in generated function signatures
