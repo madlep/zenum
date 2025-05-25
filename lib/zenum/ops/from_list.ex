@@ -11,7 +11,7 @@ defmodule Zenum.Ops.FromList do
     end
 
     def next_fn_ast(op = %Zenum.Ops.FromList{}, id, params, context) do
-      data = param(op.n, :data)
+      data = fun_param_name(op.n, :data)
 
       quote context: context do
         def unquote(next_fn(id, op.n))(unquote_splicing(params)) do

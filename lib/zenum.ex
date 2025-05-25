@@ -1,6 +1,8 @@
 defmodule Zenum do
   import Zenum.AST
 
+  @type id() :: non_neg_integer()
+
   defmacro __using__([]) do
     quote do
       require Zenum
@@ -135,7 +137,7 @@ defmodule Zenum do
   end
 
   defp push_ast({n, :to_list, _, _}, id, ps, ctx) do
-    acc = param(n, :acc)
+    acc = fun_param_name(n, :acc)
 
     quote context: ctx do
       def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
@@ -160,14 +162,6 @@ defmodule Zenum do
     end
   end
 
-  # defp push_ast({n, :map, _, %{f: f}}, id, ps, ctx) do
-  #   quote context: ctx do
-  #     def unquote(push_fn(id, n))(unquote_splicing(ps), v) do
-  #       unquote(push_fn(id, n - 1))(unquote_splicing(ps), unquote(f).(v))
-  #     end
-  #   end
-  # end
-
   defp push_ast(op, id, params, context) when is_struct(op) do
     Zenum.Op.push_fn_ast(op, id, params, context)
   end
@@ -182,7 +176,7 @@ defmodule Zenum do
   defp return_ast({n, :to_list, _, _}, id, ps, ctx) do
     quote context: ctx do
       def unquote(return_fn(id, n))(unquote_splicing(ps)) do
-        Enum.reverse(unquote(Macro.var(param(n, :acc), ctx)))
+        Enum.reverse(unquote(Macro.var(fun_param_name(n, :acc), ctx)))
       end
     end
   end
