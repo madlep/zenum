@@ -80,9 +80,8 @@ defmodule Zenum do
     ast
   end
 
-  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, op_name]}, _, [z_args, f]}, n)
-       when op_name in [:filter] do
-    [op(n, op_name, [], %{f: f}) | build_ops(z_args, n + 1)]
+  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :filter]}, _, [z_args, f]}, n) do
+    [Zenum.Ops.Filter.build_op(n, [f]) | build_ops(z_args, n + 1)]
   end
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :map]}, _, [z_args, f]}, n) do
@@ -150,18 +149,6 @@ defmodule Zenum do
     end
   end
 
-  defp push_fun_ast({n, :filter, _, %{f: f}}, id, ps, ctx) do
-    quote context: ctx do
-      def unquote(push_fun_name(id, n))(unquote_splicing(ps), v) do
-        if unquote(f).(v) do
-          unquote(push_fun_name(id, n - 1))(unquote_splicing(ps), v)
-        else
-          unquote(next_fun_name(id, n + 1))(unquote_splicing(ps))
-        end
-      end
-    end
-  end
-
   defp push_fun_ast(op, id, params, context) when is_struct(op) do
     Zenum.Op.push_fun_ast(op, id, params, context)
   end
@@ -181,14 +168,6 @@ defmodule Zenum do
     end
   end
 
-  defp return_fun_ast({n, op, _, _}, id, ps, ctx) when op in [:filter] do
-    quote context: ctx do
-      def unquote(return_fun_name(id, n))(unquote_splicing(ps)) do
-        unquote(return_fun_name(id, n - 1))(unquote_splicing(ps))
-      end
-    end
-  end
-
   defp return_fun_ast(op, id, params, context) when is_struct(op) do
     Zenum.Op.return_fun_ast(op, id, params, context)
   end
@@ -204,7 +183,7 @@ defmodule Zenum do
     Zenum.Op.next_fun_ast(op, id, params, context)
   end
 
-  defp next_fun_ast({n, op, _, _}, id, ps, ctx) when op in [:filter, :to_list] do
+  defp next_fun_ast({n, op, _, _}, id, ps, ctx) when op in [:to_list] do
     quote context: ctx do
       def unquote(next_fun_name(id, n))(unquote_splicing(ps)) do
         unquote(next_fun_name(id, n + 1))(unquote_splicing(ps))
