@@ -1,4 +1,6 @@
 defmodule Zenum.Op.Filter do
+  alias __MODULE__
+
   import Zenum.AST
 
   defstruct [:n, :f]
@@ -6,11 +8,11 @@ defmodule Zenum.Op.Filter do
   def build_op(n, [f]), do: %__MODULE__{n: n, f: f}
 
   defimpl Zenum.Op do
-    def state(_op = %Zenum.Op.Filter{}) do
+    def state(_op = %Filter{}) do
       []
     end
 
-    def next_fun_ast(op = %Zenum.Op.Filter{}, id, params, context) do
+    def next_fun_ast(op = %Filter{}, id, params, context) do
       quote context: context do
         def unquote(next_fun_name(id, op.n))(unquote_splicing(params)) do
           unquote(next_fun_name(id, op.n + 1))(unquote_splicing(params))
@@ -18,7 +20,7 @@ defmodule Zenum.Op.Filter do
       end
     end
 
-    def push_fun_ast(op = %Zenum.Op.Filter{}, id, params, context) do
+    def push_fun_ast(op = %Filter{}, id, params, context) do
       quote context: context do
         def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
           if unquote(op.f).(v) do
@@ -30,7 +32,7 @@ defmodule Zenum.Op.Filter do
       end
     end
 
-    def return_fun_ast(op = %Zenum.Op.Filter{}, id, params, context) do
+    def return_fun_ast(op = %Filter{}, id, params, context) do
       quote context: context do
         def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
           unquote(return_fun_name(id, op.n - 1))(unquote_splicing(params))
