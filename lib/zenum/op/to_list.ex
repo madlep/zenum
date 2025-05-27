@@ -12,11 +12,11 @@ defmodule Zenum.Op.ToList do
       [{op.n, :to_list, :acc, op.acc}]
     end
 
-    def next_fun_ast(op = %ToList{}, id, params, context) do
+    def next_fun_ast(op = %ToList{}, _ops, id, params, context) do
       default_next_fun_ast(op.n, id, params, context)
     end
 
-    def push_fun_ast(op = %ToList{}, id, params, context) do
+    def push_fun_ast(op = %ToList{}, _ops, id, params, context) do
       acc = fun_param_name(op.n, :acc)
 
       quote context: context do
@@ -34,11 +34,9 @@ defmodule Zenum.Op.ToList do
       end
     end
 
-    def return_fun_ast(op = %ToList{}, id, params, context) do
+    def return_ast(op = %ToList{}, _ops, _id, _params, context) do
       quote context: context do
-        def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
-          Enum.reverse(unquote(Macro.var(fun_param_name(op.n, :acc), context)))
-        end
+        Enum.reverse(unquote(Macro.var(fun_param_name(op.n, :acc), context)))
       end
     end
   end

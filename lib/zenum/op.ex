@@ -12,12 +12,20 @@ defprotocol Zenum.Op do
   @spec state(t()) :: state()
   def state(op)
 
-  @spec next_fun_ast(t(), Zenum.id(), params(), context :: atom()) :: Macro.output()
-  def next_fun_ast(op, id, params, context)
+  @spec next_fun_ast(t(), ops :: Zenum.Zipper.t(t()), Zenum.id(), params(), context :: atom()) ::
+          Macro.output()
+  def next_fun_ast(op, ops, id, params, context)
 
-  @spec push_fun_ast(t(), Zenum.id(), params(), context :: atom()) :: Macro.output()
-  def push_fun_ast(op, id, params, context)
+  @spec push_fun_ast(t(), ops :: Zenum.Zipper.t(t()), Zenum.id(), params(), context :: atom()) ::
+          Macro.output()
+  def push_fun_ast(op, ops, id, params, context)
 
-  @spec return_fun_ast(t(), Zenum.id(), params(), context :: atom()) :: Macro.output()
-  def return_fun_ast(op, id, params, context)
+  @spec return_ast(
+          t(),
+          ops :: Zenum.Zipper.t(t()),
+          Zenum.id(),
+          params(),
+          context :: atom()
+        ) :: Macro.output()
+  def return_ast(op, ops, id, params, context)
 end

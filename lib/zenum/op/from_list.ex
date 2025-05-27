@@ -1,5 +1,7 @@
 defmodule Zenum.Op.FromList do
   alias __MODULE__
+  alias Zenum.Op
+  alias Zenum.Zipper
 
   import Zenum.AST
 
@@ -12,7 +14,7 @@ defmodule Zenum.Op.FromList do
       [{op.n, :from_list, :data, op.data}]
     end
 
-    def next_fun_ast(op = %FromList{}, id, params, context) do
+    def next_fun_ast(op = %FromList{}, ops, id, params, context) do
       data = fun_param_name(op.n, :data)
 
       quote context: context do
@@ -25,19 +27,20 @@ defmodule Zenum.Op.FromList do
               )
 
             [] ->
-              unquote(return_fun_name(id, op.n))(unquote_splicing(params))
+              unquote(return_ast(op, ops, id, params, context))
           end
         end
       end
     end
 
     # no-op - shouldn't be called
-    def push_fun_ast(_op = %FromList{}, _id, _params, _context) do
+    def push_fun_ast(_op = %FromList{}, _ops, _id, _params, _context) do
       []
     end
 
-    def return_fun_ast(op = %FromList{}, id, params, context) do
-      default_return_fun_ast(op.n, id, params, context)
+    def return_ast(_op = %FromList{}, ops, id, params, context) do
+      ops2 = Zipper.left!(ops)
+      Op.return_ast(Zipper.current!(ops2), ops2, id, params, context)
     end
   end
 end

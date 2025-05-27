@@ -1,5 +1,6 @@
 defmodule Zenum do
   alias Zenum.Op
+  alias Zenum.Zipper
 
   import Zenum.AST
 
@@ -21,12 +22,18 @@ defmodule Zenum do
 
     zenums
     |> Enum.flat_map(fn {id, ops} ->
+      ops |> dbg()
       params_ast = op_states_params_ast(ops, __CALLER__.module)
 
       Enum.concat([
-        ops |> Enum.map(&Op.push_fun_ast(&1, id, params_ast, __CALLER__.module)),
-        ops |> Enum.map(&Op.return_fun_ast(&1, id, params_ast, __CALLER__.module)),
-        ops |> Enum.reverse() |> Enum.map(&Op.next_fun_ast(&1, id, params_ast, __CALLER__.module))
+        ops
+        |> Zipper.map_zipper(
+          &Op.push_fun_ast(Zipper.current!(&1), &1, id, params_ast, __CALLER__.module)
+        ),
+        ops
+        |> Zipper.map_zipper(
+          &Op.next_fun_ast(Zipper.current!(&1), &1, id, params_ast, __CALLER__.module)
+        )
       ])
     end)
     |> tap(fn x -> x |> Macro.to_string() |> IO.puts() end)
@@ -60,7 +67,7 @@ defmodule Zenum do
       |> normalize_pipes()
       |> build_ops(1)
 
-    ops = [Op.ToList.build_op(0, []) | ops]
+    ops = [Op.ToList.build_op(0, []) | ops] |> Zipper.new()
 
     Module.put_attribute(__CALLER__.module, :zenums, {id, ops})
     Module.put_attribute(__CALLER__.module, :zenum_id, id + 1)
