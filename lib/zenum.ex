@@ -24,9 +24,9 @@ defmodule Zenum do
       params_ast = op_states_params_ast(ops, __CALLER__.module)
 
       Enum.concat([
-        Enum.map(ops, &Op.push_fun_ast(&1, id, params_ast, __CALLER__.module)),
-        Enum.map(ops, &Op.return_fun_ast(&1, id, params_ast, __CALLER__.module)),
-        Enum.map(ops, &Op.next_fun_ast(&1, id, params_ast, __CALLER__.module))
+        ops |> Enum.map(&Op.push_fun_ast(&1, id, params_ast, __CALLER__.module)),
+        ops |> Enum.map(&Op.return_fun_ast(&1, id, params_ast, __CALLER__.module)),
+        ops |> Enum.reverse() |> Enum.map(&Op.next_fun_ast(&1, id, params_ast, __CALLER__.module))
       ])
     end)
     |> tap(fn x -> x |> Macro.to_string() |> IO.puts() end)
