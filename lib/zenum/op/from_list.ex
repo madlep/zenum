@@ -37,11 +37,7 @@ defmodule Zenum.Op.FromList do
     end
 
     def return_fun_ast(op = %FromList{}, id, params, context) do
-      quote context: context do
-        def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
-          unquote(return_fun_name(id, op.n - 1))(unquote_splicing(params))
-        end
-      end
+      default_return_fun_ast(op.n, id, params, context)
     end
   end
 end

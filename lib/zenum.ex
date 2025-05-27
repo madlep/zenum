@@ -23,12 +23,13 @@ defmodule Zenum do
     |> Enum.flat_map(fn {id, ops} ->
       params_ast = op_states_params_ast(ops, __CALLER__.module)
 
-      [
-        build_push_fun_asts(id, ops, __CALLER__.module, params_ast),
-        build_return_fun_asts(id, ops, __CALLER__.module, params_ast),
-        build_next_fun_asts(id, ops, __CALLER__.module, params_ast)
-      ]
+      Enum.concat([
+        Enum.map(ops, &Op.push_fun_ast(&1, id, params_ast, __CALLER__.module)),
+        Enum.map(ops, &Op.return_fun_ast(&1, id, params_ast, __CALLER__.module)),
+        Enum.map(ops, &Op.next_fun_ast(&1, id, params_ast, __CALLER__.module))
+      ])
     end)
+    |> tap(fn x -> x |> Macro.to_string() |> IO.puts() end)
   end
 
   ### public API
@@ -94,7 +95,7 @@ defmodule Zenum do
   end
 
   defp op_states(ops) do
-    Enum.flat_map(ops, &Zenum.Op.state(&1))
+    Enum.flat_map(ops, &Op.state(&1))
   end
 
   defp state_param_name(n, param) do
@@ -107,19 +108,5 @@ defmodule Zenum do
     |> Enum.map(fn {n, _op_name, param, _value} ->
       {state_param_name(n, param), [], context}
     end)
-  end
-
-  ### build ASTs
-
-  defp build_push_fun_asts(id, ops, context, params_ast) do
-    ops |> Enum.map(&Op.push_fun_ast(&1, id, params_ast, context))
-  end
-
-  defp build_return_fun_asts(id, ops, context, params_ast) do
-    ops |> Enum.map(&Op.return_fun_ast(&1, id, params_ast, context))
-  end
-
-  defp build_next_fun_asts(id, ops, context, params_ast) do
-    ops |> Enum.map(&Op.next_fun_ast(&1, id, params_ast, context))
   end
 end

@@ -13,11 +13,7 @@ defmodule Zenum.Op.MapLiteralFn do
     end
 
     def next_fun_ast(op = %MapLiteralFn{}, id, params, context) do
-      quote context: context do
-        def unquote(next_fun_name(id, op.n))(unquote_splicing(params)) do
-          unquote(next_fun_name(id, op.n + 1))(unquote_splicing(params))
-        end
-      end
+      default_next_fun_ast(op.n, id, params, context)
     end
 
     def push_fun_ast(op = %MapLiteralFn{}, id, params, context) do
@@ -29,11 +25,7 @@ defmodule Zenum.Op.MapLiteralFn do
     end
 
     def return_fun_ast(op = %MapLiteralFn{}, id, params, context) do
-      quote context: context do
-        def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
-          unquote(return_fun_name(id, op.n - 1))(unquote_splicing(params))
-        end
-      end
+      default_return_fun_ast(op.n, id, params, context)
     end
   end
 end

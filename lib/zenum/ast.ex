@@ -29,6 +29,14 @@ defmodule Zenum.AST do
   @spec next_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
   def next_fun_name(id, n), do: :"__z_#{id}_#{n}_next__"
 
+  def default_next_fun_ast(n, id, params, context) do
+    quote context: context do
+      def unquote(next_fun_name(id, n))(unquote_splicing(params)) do
+        unquote(next_fun_name(id, n + 1))(unquote_splicing(params))
+      end
+    end
+  end
+
   @doc """
   Generates function name for returning at end of iteration
 
@@ -37,6 +45,14 @@ defmodule Zenum.AST do
   """
   @spec return_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
   def return_fun_name(id, n), do: :"__z_#{id}_#{n}_return__"
+
+  def default_return_fun_ast(n, id, params, context) do
+    quote context: context do
+      def unquote(return_fun_name(id, n))(unquote_splicing(params)) do
+        unquote(return_fun_name(id, n - 1))(unquote_splicing(params))
+      end
+    end
+  end
 
   @doc """
   Generates function param name used in generated function signatures
