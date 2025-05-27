@@ -1,5 +1,7 @@
 defmodule Zenum.Op.ToList do
   alias __MODULE__
+  alias Zenum.Op
+  alias Zenum.Zipper
 
   import Zenum.AST
 
@@ -9,27 +11,22 @@ defmodule Zenum.Op.ToList do
 
   defimpl Zenum.Op do
     def state(op = %Zenum.Op.ToList{}) do
-      [{op.n, :to_list, :acc, op.acc}]
+      [{op.n, :to_liist, :acc, op.acc}]
     end
 
-    def next_fun_ast(op = %ToList{}, _ops, id, params, context) do
-      default_next_fun_ast(op.n, id, params, context)
+    def next_ast(_op = %ToList{}, ops, id, params, context) do
+      ops2 = Zipper.right!(ops)
+      Op.next_ast(Zipper.current!(ops2), ops2, id, params, context)
     end
 
-    def push_fun_ast(op = %ToList{}, _ops, id, params, context) do
+    def push_fun_ast(op = %ToList{}, ops, id, params, context) do
       acc = fun_param_name(op.n, :acc)
+      ops2 = Zipper.right!(ops)
 
-      quote context: context do
+      quote context: context, generated: true do
         def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
-          unquote(next_fun_name(id, op.n + 1))(
-            unquote_splicing(
-              set_param(
-                params,
-                acc,
-                quote(context: context, do: [v | unquote(Macro.var(acc, context))])
-              )
-            )
-          )
+          unquote(Macro.var(acc, context)) = [v | unquote(Macro.var(acc, context))]
+          unquote(Op.next_ast(Zipper.current!(ops2), ops2, id, params, context))
         end
       end
     end

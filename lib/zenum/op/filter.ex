@@ -14,17 +14,20 @@ defmodule Zenum.Op.Filter do
       []
     end
 
-    def next_fun_ast(op = %Filter{}, _ops, id, params, context) do
-      default_next_fun_ast(op.n, id, params, context)
+    def next_ast(_op = %Filter{}, ops, id, params, context) do
+      ops2 = Zipper.right!(ops)
+      Op.next_ast(Zipper.current!(ops2), ops2, id, params, context)
     end
 
-    def push_fun_ast(op = %Filter{}, _ops, id, params, context) do
-      quote context: context do
+    def push_fun_ast(op = %Filter{}, ops, id, params, context) do
+      ops2 = Zipper.right!(ops)
+
+      quote context: context, generated: true do
         def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
           if unquote(op.f).(v) do
             unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), v)
           else
-            unquote(next_fun_name(id, op.n + 1))(unquote_splicing(params))
+            unquote(Op.next_ast(Zipper.current!(ops2), ops2, id, params, context))
           end
         end
       end

@@ -2,12 +2,10 @@ defmodule Zenum do
   alias Zenum.Op
   alias Zenum.Zipper
 
-  import Zenum.AST
-
   @type id() :: non_neg_integer()
 
   defmacro __using__([]) do
-    quote do
+    quote generated: true do
       require Zenum
       @before_compile Zenum
 
@@ -22,17 +20,12 @@ defmodule Zenum do
 
     zenums
     |> Enum.flat_map(fn {id, ops} ->
-      ops |> dbg()
       params_ast = op_states_params_ast(ops, __CALLER__.module)
 
       Enum.concat([
         ops
         |> Zipper.map_zipper(
           &Op.push_fun_ast(Zipper.current!(&1), &1, id, params_ast, __CALLER__.module)
-        ),
-        ops
-        |> Zipper.map_zipper(
-          &Op.next_fun_ast(Zipper.current!(&1), &1, id, params_ast, __CALLER__.module)
         )
       ])
     end)
@@ -42,19 +35,19 @@ defmodule Zenum do
   ### public API
 
   defmacro from_list(_z) do
-    quote do
+    quote generated: true do
       raise "must be finished with to_list()"
     end
   end
 
   defmacro map(_z, _f) do
-    quote do
+    quote generated: true do
       raise "must be finished with to_list()"
     end
   end
 
   defmacro filter(_z, _f) do
-    quote do
+    quote generated: true do
       raise "must be finished with to_list()"
     end
   end
@@ -72,11 +65,27 @@ defmodule Zenum do
     Module.put_attribute(__CALLER__.module, :zenums, {id, ops})
     Module.put_attribute(__CALLER__.module, :zenum_id, id + 1)
 
-    next_fun_args_ast = ops |> op_states() |> Enum.map(&elem(&1, 3))
+    # next_fun_args_ast = ops |> op_states() |> Enum.map(&elem(&1, 3))
 
-    quote do
-      unquote(next_fun_name(id, 0))(unquote_splicing(next_fun_args_ast))
+    params_ast = op_states_params_ast(ops, __CALLER__.module)
+
+    args_ast =
+      ops
+      |> op_states()
+      |> Enum.map(fn {n, _op_name, param, value} ->
+        var_ast = state_param_name(n, param)
+
+        quote generated: true do
+          unquote(Macro.var(var_ast, __CALLER__.module)) = unquote(value)
+        end
+      end)
+
+    quote generated: true do
+      unquote(args_ast)
+      unquote(Op.next_ast(Zipper.current!(ops), ops, id, params_ast, __CALLER__.module))
     end
+
+    # |> tap(fn ast -> Macro.to_string(ast) |> IO.puts() end)
   end
 
   ### parse ops

@@ -21,23 +21,6 @@ defmodule Zenum.AST do
   def push_fun_name(id, n), do: :"__z_#{id}_#{n}_push__"
 
   @doc """
-  Generates function name for pulling next values
-
-      iex> Zenum.AST.next_fun_name(0, 2)
-      :__z_0_2_next__
-  """
-  @spec next_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
-  def next_fun_name(id, n), do: :"__z_#{id}_#{n}_next__"
-
-  def default_next_fun_ast(n, id, params, context) do
-    quote context: context do
-      def unquote(next_fun_name(id, n))(unquote_splicing(params)) do
-        unquote(next_fun_name(id, n + 1))(unquote_splicing(params))
-      end
-    end
-  end
-
-  @doc """
   Generates function param name used in generated function signatures
 
       iex> Zenum.AST.fun_param_name(0, :data)

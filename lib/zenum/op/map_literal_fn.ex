@@ -14,12 +14,13 @@ defmodule Zenum.Op.MapLiteralFn do
       []
     end
 
-    def next_fun_ast(op = %MapLiteralFn{}, _ops, id, params, context) do
-      default_next_fun_ast(op.n, id, params, context)
+    def next_ast(_op = %MapLiteralFn{}, ops, id, params, context) do
+      ops2 = Zipper.right!(ops)
+      Op.next_ast(Zipper.current!(ops2), ops2, id, params, context)
     end
 
     def push_fun_ast(op = %MapLiteralFn{}, _ops, id, params, context) do
-      quote context: context do
+      quote context: context, generated: true do
         def unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
           unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(value))
         end

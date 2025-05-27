@@ -14,21 +14,19 @@ defmodule Zenum.Op.FromList do
       [{op.n, :from_list, :data, op.data}]
     end
 
-    def next_fun_ast(op = %FromList{}, ops, id, params, context) do
+    def next_ast(op = %FromList{}, ops, id, params, context) do
       data = fun_param_name(op.n, :data)
 
-      quote context: context do
-        def unquote(next_fun_name(id, op.n))(unquote_splicing(params)) do
-          case unquote(Macro.var(data, context)) do
-            [value | new_data] ->
-              unquote(push_fun_name(id, op.n - 1))(
-                unquote_splicing(set_param(params, data, Macro.var(:new_data, context))),
-                value
-              )
+      quote context: context, generated: true do
+        case unquote(Macro.var(data, context)) do
+          [value | new_data] ->
+            unquote(push_fun_name(id, op.n - 1))(
+              unquote_splicing(set_param(params, data, Macro.var(:new_data, context))),
+              value
+            )
 
-            [] ->
-              unquote(return_ast(op, ops, id, params, context))
-          end
+          [] ->
+            unquote(return_ast(op, ops, id, params, context))
         end
       end
     end
