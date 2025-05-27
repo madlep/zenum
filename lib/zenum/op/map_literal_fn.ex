@@ -1,4 +1,4 @@
-defmodule Zenum.Ops.Filter do
+defmodule Zenum.Op.MapLiteralFn do
   import Zenum.AST
 
   defstruct [:n, :f]
@@ -6,11 +6,11 @@ defmodule Zenum.Ops.Filter do
   def build_op(n, [f]), do: %__MODULE__{n: n, f: f}
 
   defimpl Zenum.Op do
-    def state(_op = %Zenum.Ops.Filter{}) do
+    def state(_op = %Zenum.Op.MapLiteralFn{}) do
       []
     end
 
-    def next_fun_ast(op = %Zenum.Ops.Filter{}, id, params, context) do
+    def next_fun_ast(op = %Zenum.Op.MapLiteralFn{}, id, params, context) do
       quote context: context do
         def unquote(next_fun_name(id, op.n))(unquote_splicing(params)) do
           unquote(next_fun_name(id, op.n + 1))(unquote_splicing(params))
@@ -18,19 +18,15 @@ defmodule Zenum.Ops.Filter do
       end
     end
 
-    def push_fun_ast(op = %Zenum.Ops.Filter{}, id, params, context) do
+    def push_fun_ast(op = %Zenum.Op.MapLiteralFn{}, id, params, context) do
       quote context: context do
-        def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
-          if unquote(op.f).(v) do
-            unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), v)
-          else
-            unquote(next_fun_name(id, op.n + 1))(unquote_splicing(params))
-          end
+        def unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
+          unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(value))
         end
       end
     end
 
-    def return_fun_ast(op = %Zenum.Ops.Filter{}, id, params, context) do
+    def return_fun_ast(op = %Zenum.Op.MapLiteralFn{}, id, params, context) do
       quote context: context do
         def unquote(return_fun_name(id, op.n))(unquote_splicing(params)) do
           unquote(return_fun_name(id, op.n - 1))(unquote_splicing(params))

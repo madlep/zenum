@@ -1,4 +1,6 @@
 defmodule Zenum do
+  alias Zenum.Op
+
   import Zenum.AST
 
   @type id() :: non_neg_integer()
@@ -57,7 +59,7 @@ defmodule Zenum do
       |> normalize_pipes()
       |> build_ops(1)
 
-    ops = [Zenum.Ops.ToList.build_op(0, []) | ops]
+    ops = [Op.ToList.build_op(0, []) | ops]
 
     Module.put_attribute(__CALLER__.module, :zenums, {id, ops})
     Module.put_attribute(__CALLER__.module, :zenum_id, id + 1)
@@ -80,15 +82,15 @@ defmodule Zenum do
   end
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :filter]}, _, [z_args, f]}, n) do
-    [Zenum.Ops.Filter.build_op(n, [f]) | build_ops(z_args, n + 1)]
+    [Op.Filter.build_op(n, [f]) | build_ops(z_args, n + 1)]
   end
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :map]}, _, [z_args, f]}, n) do
-    [Zenum.Ops.MapLiteralFn.build_op(n, [f]) | build_ops(z_args, n + 1)]
+    [Op.MapLiteralFn.build_op(n, [f]) | build_ops(z_args, n + 1)]
   end
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :from_list]}, _, args}, n) do
-    [Zenum.Ops.FromList.build_op(n, args)]
+    [Op.FromList.build_op(n, args)]
   end
 
   defp op_states(ops) do
@@ -110,14 +112,14 @@ defmodule Zenum do
   ### build ASTs
 
   defp build_push_fun_asts(id, ops, context, params_ast) do
-    ops |> Enum.map(&Zenum.Op.push_fun_ast(&1, id, params_ast, context))
+    ops |> Enum.map(&Op.push_fun_ast(&1, id, params_ast, context))
   end
 
   defp build_return_fun_asts(id, ops, context, params_ast) do
-    ops |> Enum.map(&Zenum.Op.return_fun_ast(&1, id, params_ast, context))
+    ops |> Enum.map(&Op.return_fun_ast(&1, id, params_ast, context))
   end
 
   defp build_next_fun_asts(id, ops, context, params_ast) do
-    ops |> Enum.map(&Zenum.Op.next_fun_ast(&1, id, params_ast, context))
+    ops |> Enum.map(&Op.next_fun_ast(&1, id, params_ast, context))
   end
 end
