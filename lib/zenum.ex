@@ -4,10 +4,18 @@ defmodule Zenum do
 
   @type id() :: non_neg_integer()
 
-  defmacro __using__([]) do
+  defmacro __using__(opts) do
     quote generated: true do
       require Zenum
       @before_compile Zenum
+
+      Module.register_attribute(__MODULE__, :zenum_debug, accumulate: false)
+
+      Module.put_attribute(
+        __MODULE__,
+        :zenum_debug,
+        unquote(Keyword.get(opts, :debug_ast) == true)
+      )
 
       Module.register_attribute(__MODULE__, :zenums, accumulate: true)
       Module.register_attribute(__MODULE__, :zenum_id, accumulate: false)
@@ -29,7 +37,7 @@ defmodule Zenum do
         )
       ])
     end)
-    |> tap(fn x -> x |> Macro.to_string() |> IO.puts() end)
+    |> debug_ast(Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
   ### public API
@@ -65,8 +73,6 @@ defmodule Zenum do
     Module.put_attribute(__CALLER__.module, :zenums, {id, ops})
     Module.put_attribute(__CALLER__.module, :zenum_id, id + 1)
 
-    # next_fun_args_ast = ops |> op_states() |> Enum.map(&elem(&1, 3))
-
     params_ast = op_states_params_ast(ops, __CALLER__.module)
 
     args_ast =
@@ -84,8 +90,7 @@ defmodule Zenum do
       unquote(args_ast)
       unquote(Op.next_ast(Zipper.current!(ops), ops, id, params_ast, __CALLER__.module))
     end
-
-    # |> tap(fn ast -> Macro.to_string(ast) |> IO.puts() end)
+    |> debug_ast(Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
   ### parse ops
@@ -124,5 +129,13 @@ defmodule Zenum do
     |> Enum.map(fn {n, _op_name, param, _value} ->
       {state_param_name(n, param), [], context}
     end)
+  end
+
+  defp debug_ast(ast, debug) do
+    if debug do
+      ast |> Macro.to_string() |> IO.puts()
+    end
+
+    ast
   end
 end
