@@ -15,18 +15,18 @@ defmodule Zenum.Op.ToList do
     end
 
     def next_ast(_op = %ToList{}, ops, id, params, context) do
-      ops2 = Zipper.right!(ops)
-      Op.next_ast(Zipper.current!(ops2), ops2, id, params, context)
+      ops2 = Zipper.next!(ops)
+      Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
 
     def push_fun_ast(op = %ToList{}, ops, id, params, context) do
       acc = fun_param_name(op.n, :acc)
-      ops2 = Zipper.right!(ops)
+      ops2 = Zipper.next!(ops)
 
       quote context: context, generated: true do
         def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
           unquote(Macro.var(acc, context)) = [v | unquote(Macro.var(acc, context))]
-          unquote(Op.next_ast(Zipper.current!(ops2), ops2, id, params, context))
+          unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
         end
       end
     end

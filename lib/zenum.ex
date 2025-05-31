@@ -33,7 +33,7 @@ defmodule Zenum do
       Enum.concat([
         ops
         |> Zipper.map_zipper(
-          &Op.push_fun_ast(Zipper.current!(&1), &1, id, params_ast, __CALLER__.module)
+          &Op.push_fun_ast(Zipper.head!(&1), &1, id, params_ast, __CALLER__.module)
         )
       ])
     end)
@@ -88,7 +88,7 @@ defmodule Zenum do
 
     quote generated: true do
       unquote(args_ast)
-      unquote(Op.next_ast(Zipper.current!(ops), ops, id, params_ast, __CALLER__.module))
+      unquote(Op.next_ast(Zipper.head!(ops), ops, id, params_ast, __CALLER__.module))
     end
     |> debug_ast(Module.get_attribute(__CALLER__.module, :zenum_debug))
   end

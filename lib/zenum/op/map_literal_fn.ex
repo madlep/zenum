@@ -15,8 +15,8 @@ defmodule Zenum.Op.MapLiteralFn do
     end
 
     def next_ast(_op = %MapLiteralFn{}, ops, id, params, context) do
-      ops2 = Zipper.right!(ops)
-      Op.next_ast(Zipper.current!(ops2), ops2, id, params, context)
+      ops2 = Zipper.next!(ops)
+      Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
 
     def push_fun_ast(op = %MapLiteralFn{}, _ops, id, params, context) do
@@ -28,8 +28,8 @@ defmodule Zenum.Op.MapLiteralFn do
     end
 
     def return_ast(_op = %MapLiteralFn{}, ops, id, params, context) do
-      ops2 = Zipper.left!(ops)
-      Op.return_ast(Zipper.current!(ops2), ops2, id, params, context)
+      ops2 = Zipper.prev!(ops)
+      Op.return_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
   end
 end

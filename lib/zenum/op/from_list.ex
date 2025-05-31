@@ -37,8 +37,8 @@ defmodule Zenum.Op.FromList do
     end
 
     def return_ast(_op = %FromList{}, ops, id, params, context) do
-      ops2 = Zipper.left!(ops)
-      Op.return_ast(Zipper.current!(ops2), ops2, id, params, context)
+      ops2 = Zipper.prev!(ops)
+      Op.return_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
   end
 end

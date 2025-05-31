@@ -1,78 +1,81 @@
 defmodule Zenum.Zipper do
-  alias __MODULE__
+  alias __MODULE__, as: Z
 
-  @opaque t(v) :: %Zipper{l: list(v), r: list(v)}
-  defstruct l: [], r: []
+  @opaque t(v) :: %Z{prev: list(v), next: list(v)}
+  defstruct prev: [], next: []
 
   @spec new(list(v)) :: t(v) when v: var
-  def new(list) when is_list(list), do: %Zipper{l: [], r: list}
+  def new(list) when is_list(list), do: %Z{prev: [], next: list}
 
-  @spec current?(t(_v)) :: boolean() when _v: var
-  def current?(z = %Zipper{}), do: z.r != []
+  @spec head?(t(_v)) :: boolean() when _v: var
+  def head?(z = %Z{}), do: z.next != []
 
-  @spec current!(t(v)) :: v when v: var
-  def current!(%Zipper{r: []}), do: raise("no current value")
-  def current!(%Zipper{r: [v | _]}), do: v
+  @spec head!(t(v)) :: v when v: var
+  def head!(%Z{next: []}), do: raise("no head value")
+  def head!(%Z{next: [v | _]}), do: v
 
-  @spec current(t(v)) :: {:ok, t(v)} | {:error, :no_current} when v: var
-  def current(%Zipper{r: []}), do: {:error, :no_current}
-  def current(%Zipper{r: [v | _]}), do: {:ok, v}
+  @spec head(t(v)) :: {:ok, t(v)} | {:error, :no_current} when v: var
+  def head(%Z{next: []}), do: {:error, :no_current}
+  def head(%Z{next: [v | _]}), do: {:ok, v}
 
-  @spec left?(t(_v)) :: boolean() when _v: var
-  def left?(z = %Zipper{}), do: z.l != []
+  @spec prev?(t(_v)) :: boolean() when _v: var
+  def prev?(z = %Z{}), do: z.prev != []
 
-  @spec left!(t(v)) :: t(v) when v: var
-  def left!(%Zipper{l: []}), do: raise("no left values")
-  def left!(%Zipper{l: [v | l], r: r}), do: %Zipper{l: l, r: [v | r]}
+  @spec prev!(t(v)) :: t(v) when v: var
+  def prev!(%Z{prev: []}), do: raise("no prev values")
+  def prev!(%Z{prev: [v | prev], next: next}), do: %Z{prev: prev, next: [v | next]}
 
-  @spec left(t(v)) :: {:ok, t(v)} | {:error, :no_previous} when v: var
-  def left(%Zipper{l: []}), do: {:error, :no_previous}
-  def left(%Zipper{l: [v | l], r: r}), do: {:ok, %Zipper{l: l, r: [v | r]}}
+  @spec prev(t(v)) :: {:ok, t(v)} | {:error, :no_previous} when v: var
+  def prev(%Z{prev: []}), do: {:error, :no_previous}
+  def prev(%Z{prev: [v | prev], next: next}), do: {:ok, %Z{prev: prev, next: [v | next]}}
 
-  @spec right?(t(_v)) :: boolean() when _v: var
-  def right?(z = %Zipper{}), do: match?([_, _ | _], z.r)
+  @spec next?(t(_v)) :: boolean() when _v: var
+  def next?(z = %Z{}), do: match?([_, _ | _], z.next)
 
-  @spec right!(t(v)) :: t(v) when v: var
-  def right!(%Zipper{r: []}), do: raise("no next values")
-  def right!(%Zipper{l: l, r: [v | r]}), do: %Zipper{l: [v | l], r: r}
+  @spec next!(t(v)) :: t(v) when v: var
+  def next!(%Z{next: []}), do: raise("no next values")
+  def next!(%Z{prev: prev, next: [v | next]}), do: %Z{prev: [v | prev], next: next}
 
-  @spec right(t(v)) :: {:ok, t(v)} | {:error, :no_next} when v: var
-  def right(%Zipper{r: []}), do: {:error, :no_next}
-  def right(%Zipper{l: l, r: [v | r]}), do: {:ok, %Zipper{l: [v | l], r: r}}
+  @spec next(t(v)) :: {:ok, t(v)} | {:error, :no_next} when v: var
+  def next(%Z{next: []}), do: {:error, :no_next}
+  def next(%Z{prev: prev, next: [v | next]}), do: {:ok, %Z{prev: [v | prev], next: next}}
 
-  def count(z = %Zipper{}), do: length(z.l) + length(z.r)
+  @spec count(t(_v)) :: non_neg_integer() when _v: var
+  def count(z = %Z{}), do: length(z.prev) + length(z.next)
 
-  def concat_list(z = %Zipper{}, list), do: %Zipper{l: z.l, r: z.r ++ list}
+  @spec concat_list(t(v), list(v)) :: t(v) when v: var
+  def concat_list(z = %Z{}, list), do: %Z{z | next: z.next ++ list}
 
-  def map_zipper(z = %Zipper{}, f), do: do_map_zipper(z, f, [])
+  @spec map_zipper(t(v), (t(v) -> v2)) :: list(v2) when v: var, v2: var
+  def map_zipper(z = %Z{}, f), do: do_map_zipper(z, f, [])
 
-  defp do_map_zipper(%Zipper{r: []}, _f, acc), do: Enum.reverse(acc)
-  defp do_map_zipper(z = %Zipper{}, f, acc), do: do_map_zipper(right!(z), f, [f.(z) | acc])
+  defp do_map_zipper(%Z{next: []}, _f, acc), do: Enum.reverse(acc)
+  defp do_map_zipper(z = %Z{}, f, acc), do: z |> next!() |> do_map_zipper(f, [f.(z) | acc])
 
   defimpl Enumerable do
-    def count(z), do: {:ok, Zipper.count(z)}
+    def count(z), do: {:ok, Z.count(z)}
 
-    def member?(_z, _), do: {:error, Zipper}
+    def member?(_z, _), do: {:error, Z}
 
     def reduce(_z, {:halt, acc}, _f), do: {:halted, acc}
 
     def reduce(z, {:suspend, acc}, f), do: {:suspended, acc, &reduce(z, &1, f)}
 
     def reduce(z, {:cont, acc}, f) do
-      case Zipper.right(z) do
-        {:ok, z2} -> reduce(z2, f.(Zipper.current!(z), acc), f)
+      case Z.next(z) do
+        {:ok, z2} -> reduce(z2, f.(Z.head!(z), acc), f)
         {:error, _} -> {:done, acc}
       end
     end
 
-    def slice(_z), do: {:error, Zipper}
+    def slice(_z), do: {:error, Z}
   end
 
   defimpl Collectable do
     def into(zipper) do
       collector = fn
         acc, {:cont, elem} -> [elem | acc]
-        acc, :done -> Zipper.concat_list(zipper, Enum.reverse(acc))
+        acc, :done -> Z.concat_list(zipper, Enum.reverse(acc))
         _acc, :halt -> :ok
       end
 
