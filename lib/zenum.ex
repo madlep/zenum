@@ -37,7 +37,7 @@ defmodule Zenum do
         )
       ])
     end)
-    |> debug_ast(Module.get_attribute(__CALLER__.module, :zenum_debug))
+    |> debug_ast("__before_compile__", Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
   ### public API
@@ -90,6 +90,7 @@ defmodule Zenum do
       unquote(args_ast)
       unquote(Op.next_ast(Zipper.head!(ops), ops, id, params_ast, __CALLER__.module))
     end
+    |> debug_ast("to_list", Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
   ### parse ops
@@ -130,8 +131,9 @@ defmodule Zenum do
     end)
   end
 
-  defp debug_ast(ast, debug) do
+  defp debug_ast(ast, title, debug) do
     if debug do
+      IO.puts(title)
       ast |> Macro.to_string() |> IO.puts()
     end
 
