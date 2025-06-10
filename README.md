@@ -1,6 +1,24 @@
 # Zenum
 
-**TODO: Add description**
+Zero cost abstraction replacment for Elixir `Enum` and `Stream`
+
+Faster and lower memory usage than both.
+
+## Example
+```elixir
+    use Zenum
+
+    data = [1, 2, 3, 4, 1, 2, 3]
+
+    actual =
+      data
+      |> Zenum.from_list()
+      |> Zenum.map(fn x -> x * 2 end)
+      |> Zenum.filter(fn x -> x <= 6 end)
+      |> Zenum.to_list()
+
+    # [2, 4, 6, 2, 4, 6]
+```
 
 ## Installation
 
