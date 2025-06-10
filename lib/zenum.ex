@@ -90,7 +90,6 @@ defmodule Zenum do
       unquote(args_ast)
       unquote(Op.next_ast(Zipper.head!(ops), ops, id, params_ast, __CALLER__.module))
     end
-    |> debug_ast(Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
   ### parse ops
