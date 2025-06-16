@@ -21,7 +21,7 @@ defmodule Zenum.Op.MapLiteralFn do
 
     def push_fun_ast(op = %MapLiteralFn{}, _ops, id, params, context) do
       quote context: context, generated: true do
-        def unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
+        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
           unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(value))
         end
       end

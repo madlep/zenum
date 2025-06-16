@@ -23,7 +23,7 @@ defmodule Zenum.Op.Filter do
       ops2 = Zipper.next!(ops)
 
       quote context: context, generated: true do
-        def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
+        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
           if unquote(op.f).(v) do
             unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), v)
           else

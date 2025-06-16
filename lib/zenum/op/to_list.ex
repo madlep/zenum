@@ -24,7 +24,7 @@ defmodule Zenum.Op.ToList do
       ops2 = Zipper.next!(ops)
 
       quote context: context, generated: true do
-        def unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
+        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
           unquote(Macro.var(acc, context)) = [v | unquote(Macro.var(acc, context))]
           unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
         end
