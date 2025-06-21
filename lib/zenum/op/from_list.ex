@@ -11,18 +11,18 @@ defmodule Zenum.Op.FromList do
 
   defimpl Zenum.Op do
     def state(op = %FromList{}) do
-      [{op.n, :from_list, :data, op.data}]
+      [{op.n, :from_list, :from_list_data, op.data}]
     end
 
     def next_ast(op = %FromList{}, ops, id, params, context) do
-      data = fun_param_name(op.n, :data)
+      data = fun_param_name(op.n, :from_list_data)
 
       quote context: context, generated: true do
         case unquote(Macro.var(data, context)) do
-          [v | new_data] ->
+          [value_from_list_data | from_list_data2] ->
             unquote(push_fun_name(id, op.n - 1))(
-              unquote_splicing(set_param(params, data, Macro.var(:new_data, context))),
-              v
+              unquote_splicing(set_param(params, data, Macro.var(:from_list_data2, context))),
+              value_from_list_data
             )
 
           [] ->
