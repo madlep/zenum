@@ -31,30 +31,26 @@ The above module gets turned into something like...
         [op_0_acc = [], op_3_data = input]
 
         case op_3_data do
-          [v | new_data] -> __z_0_2_push__(op_0_acc, new_data, v)
+          [v | new_data] -> __z_0_2__(op_0_acc, new_data, v)
           [] -> Enum.reverse(op_0_acc)
         end
       end
 
-      defp __z_0_2_push__(op_0_acc, op_3_data, v) do
+      defp __z_0_2__(op_0_acc, op_3_data, v) do
         v = (fn x -> x * 2 end).(v)
 
         if (fn x -> x <= 6 end).(v) do
-          __z_0_0_push__(op_0_acc, op_3_data, v)
-        else
+          op_0_acc = [v | op_0_acc]
+
           case op_3_data do
-            [v | new_data] -> __z_0_2_push__(op_0_acc, new_data, v)
+            [v | new_data] -> __z_0_2__(op_0_acc, new_data, v)
             [] -> Enum.reverse(op_0_acc)
           end
-        end
-      end
-
-      defp __z_0_0_push__(op_0_acc, op_3_data, v) do
-        op_0_acc = [v | op_0_acc]
-
-        case op_3_data do
-          [v | new_data] -> __z_0_2_push__(op_0_acc, new_data, v)
-          [] -> Enum.reverse(op_0_acc)
+        else
+          case op_3_data do
+            [v | new_data] -> __z_0_2__(op_0_acc, new_data, v)
+            [] -> Enum.reverse(op_0_acc)
+          end
         end
       end
     end
