@@ -16,6 +16,17 @@ defprotocol Zenum.Op do
           Macro.output()
   def next_ast(op, ops, id, params, context)
 
+  @spec push_ast(
+          t(),
+          ops :: Zenum.Zipper.t(t()),
+          Zenum.id(),
+          params(),
+          context :: atom(),
+          v :: Macro.t()
+        ) ::
+          Macro.output()
+  def push_ast(op, ops, id, params, context, v)
+
   @spec push_fun_ast(t(), ops :: Zenum.Zipper.t(t()), Zenum.id(), params(), context :: atom()) ::
           Macro.output()
   def push_fun_ast(op, ops, id, params, context)

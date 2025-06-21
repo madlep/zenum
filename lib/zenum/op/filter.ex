@@ -19,16 +19,22 @@ defmodule Zenum.Op.Filter do
       Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
 
-    def push_fun_ast(op = %Filter{}, ops, id, params, context) do
+    def push_ast(op = %Filter{}, ops, id, params, context, v) do
       ops2 = Zipper.next!(ops)
 
       quote context: context, generated: true do
+        if unquote(op.f).(v) do
+          unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(v))
+        else
+          unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+        end
+      end
+    end
+
+    def push_fun_ast(op = %Filter{}, ops, id, params, context) do
+      quote context: context, generated: true do
         defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
-          if unquote(op.f).(v) do
-            unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), v)
-          else
-            unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
-          end
+          unquote(push_ast(op, ops, id, params, context, Macro.var(:v, context)))
         end
       end
     end

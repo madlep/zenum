@@ -19,14 +19,20 @@ defmodule Zenum.Op.ToList do
       Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
 
-    def push_fun_ast(op = %ToList{}, ops, id, params, context) do
+    def push_ast(op = %ToList{}, ops, id, params, context, v) do
       acc = fun_param_name(op.n, :acc)
       ops2 = Zipper.next!(ops)
 
+      quote do
+        unquote(Macro.var(acc, context)) = [unquote(v) | unquote(Macro.var(acc, context))]
+        unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+      end
+    end
+
+    def push_fun_ast(op = %ToList{}, ops, id, params, context) do
       quote context: context, generated: true do
         defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
-          unquote(Macro.var(acc, context)) = [v | unquote(Macro.var(acc, context))]
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+          unquote(push_ast(op, ops, id, params, context, Macro.var(:v, context)))
         end
       end
     end

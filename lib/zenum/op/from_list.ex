@@ -19,10 +19,10 @@ defmodule Zenum.Op.FromList do
 
       quote context: context, generated: true do
         case unquote(Macro.var(data, context)) do
-          [value | new_data] ->
+          [v | new_data] ->
             unquote(push_fun_name(id, op.n - 1))(
               unquote_splicing(set_param(params, data, Macro.var(:new_data, context))),
-              value
+              v
             )
 
           [] ->
@@ -32,6 +32,10 @@ defmodule Zenum.Op.FromList do
     end
 
     # no-op - shouldn't be called
+    def push_ast(_op = %FromList{}, _ops, _id, _params, _context, _v) do
+      []
+    end
+
     def push_fun_ast(_op = %FromList{}, _ops, _id, _params, _context) do
       []
     end

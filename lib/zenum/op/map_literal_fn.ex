@@ -19,10 +19,16 @@ defmodule Zenum.Op.MapLiteralFn do
       Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
 
-    def push_fun_ast(op = %MapLiteralFn{}, _ops, id, params, context) do
+    def push_ast(op = %MapLiteralFn{}, _ops, id, params, context, v) do
       quote context: context, generated: true do
-        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
-          unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(value))
+        unquote(push_fun_name(id, op.n - 1))(unquote_splicing(params), unquote(op.f).(unquote(v)))
+      end
+    end
+
+    def push_fun_ast(op = %MapLiteralFn{}, ops, id, params, context) do
+      quote context: context, generated: true do
+        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), v) do
+          unquote(push_ast(op, ops, id, params, context, Macro.var(:v, context)))
         end
       end
     end
