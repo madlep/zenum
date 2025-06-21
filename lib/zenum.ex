@@ -19,6 +19,7 @@ defmodule Zenum do
 
       Module.register_attribute(__MODULE__, :zenums, accumulate: true)
       Module.register_attribute(__MODULE__, :zenum_id, accumulate: false)
+      Module.register_attribute(__MODULE__, :zenum_used_funs, accumulate: true)
       Module.put_attribute(__MODULE__, :zenum_id, 0)
     end
   end
@@ -26,17 +27,30 @@ defmodule Zenum do
   defmacro __before_compile__(_env) do
     zenums = Module.get_attribute(__CALLER__.module, :zenums)
 
-    zenums
-    |> Enum.flat_map(fn {id, ops} ->
-      params_ast = op_states_params_ast(ops, __CALLER__.module)
+    ast =
+      zenums
+      |> Enum.flat_map(fn {id, ops} ->
+        params_ast = op_states_params_ast(ops, __CALLER__.module)
 
-      Enum.concat([
-        ops
-        |> Zipper.map_zipper(
-          &Op.push_fun_ast(Zipper.head!(&1), &1, id, params_ast, __CALLER__.module)
-        )
-      ])
-    end)
+        Enum.concat([
+          ops
+          |> Zipper.map_zipper(
+            &Op.push_fun_ast(Zipper.head!(&1), &1, id, params_ast, __CALLER__.module)
+          )
+        ])
+      end)
+
+    for f <- used_z_funs(ast) do
+      Module.put_attribute(__CALLER__.module, :zenum_used_funs, f)
+    end
+
+    unused =
+      Module.get_attribute(__CALLER__.module, :zenum_used_funs)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    ast
+    |> remove_unused_z_funs(unused)
     |> debug_ast("__before_compile__", Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
@@ -86,10 +100,17 @@ defmodule Zenum do
         end
       end)
 
-    quote generated: true do
-      unquote(args_ast)
-      unquote(Op.next_ast(Zipper.head!(ops), ops, id, params_ast, __CALLER__.module))
+    ast =
+      quote generated: true do
+        unquote(args_ast)
+        unquote(Op.next_ast(Zipper.head!(ops), ops, id, params_ast, __CALLER__.module))
+      end
+
+    for f <- used_z_funs(ast) do
+      Module.put_attribute(__CALLER__.module, :zenum_used_funs, f)
     end
+
+    ast
     |> debug_ast("to_list", Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
@@ -131,13 +152,38 @@ defmodule Zenum do
     end)
   end
 
-  defp debug_ast(ast, title, debug) do
-    if debug do
-      IO.puts(title)
-      ast |> Macro.to_string() |> IO.puts()
-    end
-
+  defp used_z_funs(ast) do
     ast
+    |> Macro.prewalk([], fn
+      {:defp, _, [_f, [do: fbody]]}, acc ->
+        {fbody, acc}
+
+      t = {op, _, _}, acc when is_atom(op) ->
+        if Atom.to_string(op) =~ ~r/^__z_\d+_\d+_push__$/ do
+          {t, [op | acc]}
+        else
+          {t, acc}
+        end
+
+      t, acc ->
+        {t, acc}
+    end)
+    |> elem(1)
+  end
+
+  defp remove_unused_z_funs(ast, used_funs) do
+    ast
+    |> Macro.prewalk(fn
+      t = {:defp, _, [{f, _, _args}, [do: _]]} ->
+        if f in used_funs do
+          t
+        else
+          []
+        end
+
+      t ->
+        t
+    end)
   end
 
   defp debug_ast(ast, title, true) do
