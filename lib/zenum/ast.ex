@@ -15,10 +15,10 @@ defmodule Zenum.AST do
   Generates function name for pushing values forward
 
       iex> Zenum.AST.push_fun_name(0, 2)
-      :__z_0_2_push__
+      :__z_0_2__
   """
   @spec push_fun_name(Zenum.id(), Op.op_number()) :: fun_name()
-  def push_fun_name(id, n), do: :"__z_#{id}_#{n}_push__"
+  def push_fun_name(id, n), do: :"__z_#{id}_#{n}__"
 
   @doc """
   Generates function param name used in generated function signatures
