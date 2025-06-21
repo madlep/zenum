@@ -1,7 +1,7 @@
-defmodule Zenum.Examples.Simple do
-  use Zenum, debug_ast: true
+defmodule ExampleZenum do
+  use Zenum, debug_ast: false
 
-  def bar(input) do
+  def do_stuff(input) do
     input
     |> Zenum.from_list()
     |> Zenum.map(fn x -> x * 2 end)

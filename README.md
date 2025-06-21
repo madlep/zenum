@@ -6,10 +6,10 @@ Zero cost abstraction replacment for Elixir `Enum` and `Stream`. Faster and lowe
 
 ```elixir
     defmodule ExampleZenum do
-      use Zenum, debug_ast: true
+      use Zenum
 
-      def do_stuff(data) do
-        data
+      def do_stuff(input) do
+        input
         |> Zenum.from_list()
         |> Zenum.map(fn x -> x * 2 end)
         |> Zenum.filter(fn x -> x <= 6 end)
@@ -27,26 +27,23 @@ The above module gets turned into something like...
 
 ```elixir
     defmodule ExampleZenum do
-      def do_stuff(data) do
-        op_0_acc = []
-        op_3_data = data
+      def do_stuff(input) do
+        [op_0_acc = [], op_3_data = input]
 
         case op_3_data do
-          [value | new_data] -> __z_0_2_push__(op_0_acc, new_data, value)
+          [v | new_data] -> __z_0_2_push__(op_0_acc, new_data, v)
           [] -> Enum.reverse(op_0_acc)
         end
       end
 
-      defp __z_0_2_push__(op_0_acc, op_3_data, value) do
-        __z_0_1_push__(op_0_acc, op_3_data, (fn x -> x * 2 end).(value))
-      end
+      defp __z_0_2_push__(op_0_acc, op_3_data, v) do
+        v = (fn x -> x * 2 end).(v)
 
-      defp __z_0_1_push__(op_0_acc, op_3_data, v) do
         if (fn x -> x <= 6 end).(v) do
           __z_0_0_push__(op_0_acc, op_3_data, v)
         else
           case op_3_data do
-            [value | new_data] -> __z_0_2_push__(op_0_acc, new_data, value)
+            [v | new_data] -> __z_0_2_push__(op_0_acc, new_data, v)
             [] -> Enum.reverse(op_0_acc)
           end
         end
@@ -56,7 +53,7 @@ The above module gets turned into something like...
         op_0_acc = [v | op_0_acc]
 
         case op_3_data do
-          [value | new_data] -> __z_0_2_push__(op_0_acc, new_data, value)
+          [v | new_data] -> __z_0_2_push__(op_0_acc, new_data, v)
           [] -> Enum.reverse(op_0_acc)
         end
       end
