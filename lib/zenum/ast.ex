@@ -109,5 +109,39 @@ defmodule Zenum.AST do
 
   def inlineable_local_fun_partial?(_ast), do: false
 
+  def used_zenum_funs(ast) do
+    ast
+    |> Macro.prewalk([], fn
+      {:defp, _, [_f, [do: fbody]]}, acc ->
+        {fbody, acc}
+
+      t = {op, _, _}, acc when is_atom(op) ->
+        if Atom.to_string(op) =~ ~r/^__z_\d+_\d+__$/ do
+          {t, [op | acc]}
+        else
+          {t, acc}
+        end
+
+      t, acc ->
+        {t, acc}
+    end)
+    |> elem(1)
+  end
+
+  def remove_unused_zenum_funs(ast, used_funs) do
+    ast
+    |> Macro.prewalk(fn
+      t = {:defp, _, [{f, _, _args}, [do: _]]} ->
+        if f in used_funs do
+          t
+        else
+          []
+        end
+
+      t ->
+        t
+    end)
+  end
+
   # remote function reference eg `&Bar.foo/1`
 end
