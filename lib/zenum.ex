@@ -14,7 +14,7 @@ defmodule Zenum do
       Module.put_attribute(
         __MODULE__,
         :zenum_debug,
-        unquote(Keyword.get(opts, :debug_ast) == true)
+        unquote(Keyword.get(opts, :debug_ast))
       )
 
       Module.register_attribute(__MODULE__, :zenums, accumulate: true)
@@ -139,4 +139,18 @@ defmodule Zenum do
 
     ast
   end
+
+  defp debug_ast(ast, title, true) do
+    IO.puts(title)
+    ast |> Macro.to_string() |> IO.puts()
+
+    ast
+  end
+
+  defp debug_ast(ast, title, :ast) do
+    IO.puts(title)
+    IO.inspect(ast)
+  end
+
+  defp debug_ast(ast, _title, false), do: ast
 end
