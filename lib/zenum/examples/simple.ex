@@ -1,5 +1,5 @@
 defmodule ExampleZenum do
-  use Zenum, debug_ast: false
+  use Zenum
 
   def do_stuff(input) do
     input
