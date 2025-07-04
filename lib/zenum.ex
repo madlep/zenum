@@ -165,5 +165,5 @@ defmodule Zenum do
     IO.inspect(ast)
   end
 
-  defp debug_ast(ast, _title, false), do: ast
+  defp debug_ast(ast, _title, _), do: ast
 end
