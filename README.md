@@ -28,28 +28,37 @@ The above module gets turned into something like...
 ```elixir
     defmodule ExampleZenum do
       def do_stuff(input) do
-        [op_0_acc = [], op_3_data = input]
+        [op_0_to_list_acc = [], op_3_from_list_data = input]
 
-        case op_3_data do
-          [v | new_data] -> __z_0_2__(op_0_acc, new_data, v)
-          [] -> Enum.reverse(op_0_acc)
+        case op_3_from_list_data do
+          [value_from_list_data | from_list_data2] ->
+            __z_0_2__(op_0_to_list_acc, from_list_data2, value_from_list_data)
+
+          [] ->
+            Enum.reverse(op_0_to_list_acc)
         end
-      end
+     end
 
-      defp __z_0_2__(op_0_acc, op_3_data, v) do
-        v = (fn x -> x * 2 end).(v)
+      defp __z_0_2__(op_0_to_list_acc, op_3_from_list_data, value) do
+        value2 = (fn x -> x * 2 end).(value)
 
-        if (fn x -> x <= 6 end).(v) do
-          op_0_acc = [v | op_0_acc]
+        if (fn x -> x <= 6 end).(value2) do
+          op_0_to_list_acc = [value2 | op_0_to_list_acc]
 
-          case op_3_data do
-            [v | new_data] -> __z_0_2__(op_0_acc, new_data, v)
-            [] -> Enum.reverse(op_0_acc)
+          case op_3_from_list_data do
+            [value_from_list_data | from_list_data2] ->
+              __z_0_2__(op_0_to_list_acc, from_list_data2, value_from_list_data)
+
+            [] ->
+              Enum.reverse(op_0_to_list_acc)
           end
         else
-          case op_3_data do
-            [v | new_data] -> __z_0_2__(op_0_acc, new_data, v)
-            [] -> Enum.reverse(op_0_acc)
+          case op_3_from_list_data do
+            [value_from_list_data | from_list_data2] ->
+              __z_0_2__(op_0_to_list_acc, from_list_data2, value_from_list_data)
+
+            [] ->
+              Enum.reverse(op_0_to_list_acc)
           end
         end
       end
