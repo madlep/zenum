@@ -167,20 +167,85 @@ defmodule Zenum.Zipper do
   @spec next?(t(_v)) :: boolean() when _v: var
   def next?(z = %Z{}), do: z.next != []
 
+  @doc """
+  Move the zipper forwards to the next position
+
+      iex> z = Zenum.Zipper.new([1, 2, 3])
+      iex> Zenum.Zipper.next!(z)
+      %Zenum.Zipper{prev: [1], next: [2, 3]}
+
+  Will raise if the zipper is at the last position, or is empty
+
+      iex> z = Zenum.Zipper.new([1,2])
+      ...>   |> Zenum.Zipper.next!()
+      ...>   |> Zenum.Zipper.next!()
+      iex> ExUnit.Assertions.assert_raise(RuntimeError, fn -> Zenum.Zipper.next!(z) end)
+
+      iex> z = Zenum.Zipper.new([])
+      iex> ExUnit.Assertions.assert_raise(RuntimeError, fn -> Zenum.Zipper.next!(z) end)
+  """
   @spec next!(t(v)) :: t(v) when v: var
   def next!(%Z{prev: prev, next: [v | next]}), do: %Z{prev: [v | prev], next: next}
   def next!(%Z{}), do: raise("no next values")
 
+  @doc """
+  Move the zipper forwards to the next position in an `:ok`/`:error` tuple
+
+      iex> z = Zenum.Zipper.new([1, 2, 3])
+      ...>   |> Zenum.Zipper.next!()
+      iex> Zenum.Zipper.next(z)
+      {:ok, %Zenum.Zipper{prev: [2, 1], next: [3]}}
+
+      iex> z = Zenum.Zipper.new([1, 2, 3])
+      ...>   |> Zenum.Zipper.next!()
+      ...>   |> Zenum.Zipper.next!()
+      ...>   |> Zenum.Zipper.next!()
+      iex> Zenum.Zipper.next(z)
+      {:error, :no_next}
+
+      iex> z = Zenum.Zipper.new([])
+      iex> Zenum.Zipper.next(z)
+      {:error, :no_next}
+  """
   @spec next(t(v)) :: {:ok, t(v)} | {:error, :no_next} when v: var
   def next(%Z{prev: prev, next: [v | next]}), do: {:ok, %Z{prev: [v | prev], next: next}}
   def next(%Z{}), do: {:error, :no_next}
 
+  @doc """
+  Count of remaining next values. Previous values do not contribute to count.
+
+      iex> z = Zenum.Zipper.new([1,2,3])
+      iex> Zenum.Zipper.count(z)
+      3
+
+      iex> z = Zenum.Zipper.new([1,2,3])
+      ...>   |> Zenum.Zipper.next!()
+      iex> Zenum.Zipper.count(z)
+      2
+  """
   @spec count(t(_v)) :: non_neg_integer() when _v: var
   def count(z = %Z{}), do: length(z.next)
 
+  @doc """
+  Concatete a list on the end of the next elements for a zipper
+
+      iex> z = Zenum.Zipper.new([1,2,3])
+      ...>   |> Zenum.Zipper.next!()
+      iex> Zenum.Zipper.concat_list(z, [:a, :b, :c])
+      %Zenum.Zipper{prev: [1], next: [2, 3, :a, :b, :c]}
+  """
   @spec concat_list(t(v), list(v)) :: t(v) when v: var
   def concat_list(z = %Z{}, list), do: %Z{z | next: z.next ++ list}
 
+  @doc """
+  Map over the zipper, stepping through `next/1` and yielding the zipper at that position (as opposed to of the value at the head, which `Enum.map/2` woudld do).
+
+      iex> z = [:a, :b, :c] |> Zenum.Zipper.new()
+      iex> Zenum.Zipper.map_zipper(z, fn 
+      ...>   z2 -> %{head: Zenum.Zipper.head!(z2), remaining: Zenum.Zipper.count(z2)}
+      ...> end)
+      [%{head: :a, remaining: 3}, %{head: :b, remaining: 2}, %{head: :c, remaining: 1}]
+  """
   @spec map_zipper(t(v), (t(v) -> v2)) :: list(v2) when v: var, v2: var
   def map_zipper(z = %Z{}, f), do: do_map_zipper(z, f, [])
 
