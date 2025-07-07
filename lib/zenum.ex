@@ -52,6 +52,7 @@ defmodule Zenum do
 
     ast
     |> AST.remove_unused_zenum_funs(unused)
+    |> Enum.reject(&(&1 == []))
     |> debug_ast("__before_compile__", Module.get_attribute(__CALLER__.module, :zenum_debug))
   end
 
