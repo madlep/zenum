@@ -235,7 +235,7 @@ defmodule Zenum.Zipper do
       %Zenum.Zipper{prev: [1], next: [2, 3, :a, :b, :c]}
   """
   @spec concat_list(t(v), list(v)) :: t(v) when v: var
-  def concat_list(z = %Z{}, list), do: %Z{z | next: z.next ++ list}
+  def concat_list(z = %Z{}, list) when is_list(list), do: %Z{z | next: z.next ++ list}
 
   @doc """
   Map over the zipper, stepping through `next/1` and yielding the zipper at that position (as opposed to of the value at the head, which `Enum.map/2` woudld do).
