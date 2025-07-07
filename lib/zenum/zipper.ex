@@ -253,7 +253,7 @@ defmodule Zenum.Zipper do
     if head?(z) do
       do_map_zipper(next!(z), f, [f.(z) | acc])
     else
-      acc
+      Enum.reverse(acc)
     end
   end
 
