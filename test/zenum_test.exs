@@ -2,7 +2,7 @@ defmodule ZenumTest do
   use ExUnit.Case
   doctest Zenum
 
-  use Zenum, debug_ast: false
+  use Zenum, debug: false
 
   test "simple pipe" do
     input = [1, 2, 3, 4, 1, 2, 3]

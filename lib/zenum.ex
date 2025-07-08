@@ -35,7 +35,7 @@ defmodule Zenum do
     record_used_funs(ast, mod)
     ast = trim_unused_funs(ast, mod)
 
-    AST.debug_ast(ast, "__before_compile__", Module.get_attribute(mod, :zenum_debug))
+    AST.debug(ast, "__before_compile__", Module.get_attribute(mod, :zenum_debug))
 
     ast
   end
@@ -94,7 +94,7 @@ defmodule Zenum do
       end
 
     record_used_funs(ast, __CALLER__.module)
-    AST.debug_ast(ast, "to_list", Module.get_attribute(mod, :zenum_debug))
+    AST.debug(ast, "to_list", Module.get_attribute(mod, :zenum_debug))
 
     ast
   end
