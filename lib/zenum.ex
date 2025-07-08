@@ -108,16 +108,23 @@ defmodule Zenum do
   end
 
   ### parse ops
-  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :filter]}, _, [z_args, f]}, n) do
-    [Op.Filter.build_op(n, [f]) | build_ops(z_args, n + 1)]
-  end
+  @op_mod_lookup %{
+    filter: Op.Filter,
+    map: Op.MapLiteralFn,
+    from_list: Op.FromList
+  }
 
-  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :map]}, _, [z_args, f]}, n) do
-    [Op.MapLiteralFn.build_op(n, [f]) | build_ops(z_args, n + 1)]
-  end
+  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, op]}, _, args}, n)
+       when is_map_key(@op_mod_lookup, op) do
+    mod = Map.fetch!(@op_mod_lookup, op)
 
-  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :from_list]}, _, args}, n) do
-    [Op.FromList.build_op(n, args)]
+    case args do
+      [arg] ->
+        [mod.build_op(n, [arg])]
+
+      [z_args | op_args] ->
+        [mod.build_op(n, op_args) | build_ops(z_args, n + 1)]
+    end
   end
 
   defp op_states(ops) do
