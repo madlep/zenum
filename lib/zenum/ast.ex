@@ -143,5 +143,11 @@ defmodule Zenum.AST do
     end)
   end
 
-  # remote function reference eg `&Bar.foo/1`
+  def normalize_pipes({:|>, _, [piped_ast | [{fn_ast, fn_context, fn_args}]]}) do
+    {fn_ast, fn_context, [normalize_pipes(piped_ast) | fn_args]}
+  end
+
+  def normalize_pipes(ast) do
+    ast
+  end
 end

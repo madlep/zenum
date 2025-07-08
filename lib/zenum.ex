@@ -81,7 +81,7 @@ defmodule Zenum do
 
     ops =
       z
-      |> normalize_pipes()
+      |> AST.normalize_pipes()
       |> build_ops(1)
 
     ops = [Op.ToList.build_op(0, []) | ops] |> Zipper.new()
@@ -117,15 +117,6 @@ defmodule Zenum do
   end
 
   ### parse ops
-
-  defp normalize_pipes({:|>, _, [piped_ast | [{fn_ast, fn_context, fn_args}]]}) do
-    {fn_ast, fn_context, [normalize_pipes(piped_ast) | fn_args]}
-  end
-
-  defp normalize_pipes(ast) do
-    ast
-  end
-
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, :filter]}, _, [z_args, f]}, n) do
     [Op.Filter.build_op(n, [f]) | build_ops(z_args, n + 1)]
   end
