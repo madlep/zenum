@@ -160,17 +160,23 @@ defmodule Zenum.AST do
     ast
   end
 
-  def debug(ast, title, true) do
+  def debug(ast, title, true, _env) do
     IO.puts(title)
     ast |> Macro.to_string() |> IO.puts()
 
     ast
   end
 
-  def debug(ast, title, :ast) do
+  def debug(ast, _title, :warn, env) do
+    ast |> Macro.to_string() |> IO.warn(env)
+
+    ast
+  end
+
+  def debug(ast, title, :ast, _env) do
     IO.puts(title)
     IO.inspect(ast)
   end
 
-  def debug(ast, _title, _), do: ast
+  def debug(ast, _title, _option, _env), do: ast
 end

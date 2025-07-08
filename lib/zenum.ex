@@ -43,7 +43,7 @@ defmodule Zenum do
     record_used_funs(ast, mod)
     ast = trim_unused_funs(ast, mod)
 
-    AST.debug(ast, "__before_compile__", Module.get_attribute(mod, :zenum_debug))
+    AST.debug(ast, "__before_compile__", Module.get_attribute(mod, :zenum_debug), __CALLER__)
 
     ast
   end
@@ -101,18 +101,11 @@ defmodule Zenum do
         unquote(Op.next_ast(Zipper.head!(ops), ops, id, params_ast, mod))
       end
 
-    record_used_funs(ast, __CALLER__.module)
-    AST.debug(ast, "to_list", Module.get_attribute(mod, :zenum_debug))
+    record_used_funs(ast, env.module)
+    AST.debug(ast, "to_list", Module.get_attribute(mod, :zenum_debug), env)
 
     ast
   end
-
-  ### parse ops
-  @op_mod_lookup %{
-    filter: Op.Filter,
-    map: Op.MapLiteralFn,
-    from_list: Op.FromList
-  }
 
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, op]}, _, args}, n)
        when is_map_key(@op_mod_lookup, op) do
