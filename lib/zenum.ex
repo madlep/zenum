@@ -6,6 +6,9 @@ defmodule Zenum do
   @type id() :: non_neg_integer()
 
   defmacro __using__(opts) do
+    Keyword.validate!(opts, [:debug])
+    debug = Keyword.get(opts, :debug, false)
+
     quote generated: true do
       require Zenum
       @before_compile Zenum
