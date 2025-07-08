@@ -13,7 +13,6 @@ Zero cost abstraction replacment for Elixir `Enum` and `Stream`. Faster and lowe
         |> Zenum.from_list()
         |> Zenum.map(fn x -> x * 2 end)
         |> Zenum.filter(fn x -> x <= 6 end)
-        |> Zenum.to_list()
       end
     end
 

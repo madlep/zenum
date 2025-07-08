@@ -50,35 +50,64 @@ defmodule Zenum do
 
   ### public API
 
-  defmacro from_list(_z) do
-    quote generated: true do
-      raise "must be finished with to_list()"
-    end
+  defmacro from_list(list) do
+    build_zenum([], {:from_list, [list]}, __CALLER__)
   end
 
-  defmacro map(_z, _f) do
-    quote generated: true do
-      raise "must be finished with to_list()"
-    end
+  defmacro map(z, f) do
+    build_zenum(z, {:map, [f]}, __CALLER__)
   end
 
-  defmacro filter(_z, _f) do
-    quote generated: true do
-      raise "must be finished with to_list()"
-    end
+  defmacro filter(z, f) do
+    build_zenum(z, {:filter, [f]}, __CALLER__)
   end
 
   defmacro to_list(z) do
-    mod = __CALLER__.module
-    id = Module.get_attribute(mod, :zenum_id, 0)
+    build_zenum(z, nil, {:to_list, []}, __CALLER__)
+  end
 
+  ### parse ops
+  @op_mod_lookup %{
+    filter: Op.Filter,
+    map: Op.MapLiteralFn,
+    from_list: Op.FromList,
+    to_list: Op.ToList
+  }
+
+  defp build_zenum(z, op_op_args, term_op_term_op_args \\ {:to_list, []}, env)
+
+  defp build_zenum(z, nil, {term_op, term_op_args}, env)
+       when is_map_key(@op_mod_lookup, term_op) do
     ops =
       z
       |> AST.normalize_pipes()
       |> build_ops(1)
 
-    ops = [Op.ToList.build_op(0, []) | ops] |> Zipper.new()
+    term_op_mod = @op_mod_lookup[term_op]
 
+    [term_op_mod.build_op(0, term_op_args) | ops]
+    |> Zipper.new()
+    |> build_zenum(env)
+  end
+
+  defp build_zenum(z, {op, op_args}, {term_op, term_op_args}, env)
+       when is_map_key(@op_mod_lookup, op) and is_map_key(@op_mod_lookup, term_op) do
+    ops =
+      z
+      |> AST.normalize_pipes()
+      |> build_ops(2)
+
+    op_mod = @op_mod_lookup[op]
+    term_op_mod = @op_mod_lookup[term_op]
+
+    [term_op_mod.build_op(0, term_op_args), op_mod.build_op(1, op_args) | ops]
+    |> Zipper.new()
+    |> build_zenum(env)
+  end
+
+  defp build_zenum(ops, env) do
+    mod = env.module
+    id = Module.get_attribute(mod, :zenum_id, 0)
     Module.put_attribute(mod, :zenums, {id, ops})
     Module.put_attribute(mod, :zenum_id, id + 1)
 
