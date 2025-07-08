@@ -113,10 +113,15 @@ defmodule Zenum.AST do
     ast
     |> Macro.prewalk([], fn
       {:defp, _, [_f, [do: fbody]]}, acc ->
+        # skip function name and arguments AST and rewrite subsequent AST to be
+        # processed, as it's indistinguishable from function calls, and it'll
+        # show up as a false-positive function invocation
         {fbody, acc}
 
       t = {op, _, _}, acc when is_atom(op) ->
+        # we found a function call
         if Atom.to_string(op) =~ ~r/^__z_\d+_\d+__$/ do
+          # we found a __z_1_2__ style zenum function call
           {t, [op | acc]}
         else
           {t, acc}
@@ -129,12 +134,15 @@ defmodule Zenum.AST do
   end
 
   def remove_unused_zenum_funs(ast, used_funs) do
+    # rewrite generated AST keeping only function defp clauses that are used
     ast
     |> Macro.prewalk(fn
       t = {:defp, _, [{f, _, _args}, [do: _]]} ->
+        # we found a function definition
         if f in used_funs do
           t
         else
+          # which isn't in the list of called functions, so mark it in the AST to be removed
           :__zenum_unused__
         end
 
