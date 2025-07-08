@@ -6,8 +6,13 @@ defmodule Zenum do
   @type id() :: non_neg_integer()
 
   defmacro __using__(opts) do
-    Keyword.validate!(opts, [:debug])
-    debug = Keyword.get(opts, :debug, false)
+    try do
+      Keyword.validate!(opts, [:debug])
+    rescue
+      e in ArgumentError -> IO.warn(e.message, __CALLER__)
+    end
+
+    debug = Keyword.get(opts, :debug)
 
     quote generated: true do
       require Zenum
