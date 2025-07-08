@@ -135,12 +135,13 @@ defmodule Zenum.AST do
         if f in used_funs do
           t
         else
-          []
+          :__zenum_unused__
         end
 
       t ->
         t
     end)
+    |> Enum.reject(&(&1 == :__zenum_unused__))
   end
 
   def normalize_pipes({:|>, _, [piped_ast | [{fn_ast, fn_context, fn_args}]]}) do
@@ -150,4 +151,18 @@ defmodule Zenum.AST do
   def normalize_pipes(ast) do
     ast
   end
+
+  def debug_ast(ast, title, true) do
+    IO.puts(title)
+    ast |> Macro.to_string() |> IO.puts()
+
+    ast
+  end
+
+  def debug_ast(ast, title, :ast) do
+    IO.puts(title)
+    IO.inspect(ast)
+  end
+
+  def debug_ast(ast, _title, _), do: ast
 end
