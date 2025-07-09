@@ -50,7 +50,11 @@ defmodule Zenum do
 
   ### public API
   defmacro all?(z, f \\ nil) do
-    build_zenum(z, nil, {:all?, [f]}, __CALLER__)
+    build_zenum(z, nil, {:all?, [f, true]}, __CALLER__)
+  end
+
+  defmacro any?(z, f \\ nil) do
+    build_zenum(z, nil, {:any?, [f, false]}, __CALLER__)
   end
 
   defmacro filter(z, f) do
@@ -71,7 +75,8 @@ defmodule Zenum do
 
   ### parse ops
   @op_mod_lookup %{
-    all?: Op.All,
+    all?: Op.Predicate,
+    any?: Op.Predicate,
     filter: Op.Filter,
     map: Op.MapLiteralFn,
     from_list: Op.FromList,
