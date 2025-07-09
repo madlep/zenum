@@ -49,6 +49,9 @@ defmodule Zenum do
   end
 
   ### public API
+  defmacro filter(z, f) do
+    build_zenum(z, {:filter, [f]}, __CALLER__)
+  end
 
   defmacro from_list(list) do
     build_zenum([], {:from_list, [list]}, __CALLER__)
@@ -56,10 +59,6 @@ defmodule Zenum do
 
   defmacro map(z, f) do
     build_zenum(z, {:map, [f]}, __CALLER__)
-  end
-
-  defmacro filter(z, f) do
-    build_zenum(z, {:filter, [f]}, __CALLER__)
   end
 
   defmacro to_list(z) do
