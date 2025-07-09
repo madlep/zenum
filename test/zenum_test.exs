@@ -9,24 +9,79 @@ defmodule ZenumTest do
 
     actual =
       input
-      |> Zenum.from_list()
       |> Zenum.map(fn x -> x * 2 end)
       |> Zenum.filter(fn x -> x <= 6 end)
 
     assert actual == [2, 4, 6, 2, 4, 6]
   end
 
-  test "optional to_list" do
-    input = [1, 2, 3, 4, 1, 2, 3]
+  describe "zenum terminator" do
+    test "explicit to_list/1" do
+      input = [1, 2, 3, 4, 1, 2, 3]
 
-    actual =
-      input
-      |> Zenum.from_list()
-      |> Zenum.map(fn x -> x * 2 end)
-      |> Zenum.filter(fn x -> x <= 6 end)
-      |> Zenum.to_list()
+      actual =
+        input
+        |> Zenum.map(fn x -> x * 2 end)
+        |> Zenum.filter(fn x -> x <= 6 end)
+        |> Zenum.to_list()
 
-    assert actual == [2, 4, 6, 2, 4, 6]
+      assert actual == [2, 4, 6, 2, 4, 6]
+    end
+
+    test "implicit to list conversion" do
+      input = [1, 2, 3, 4, 1, 2, 3]
+
+      actual =
+        input
+        |> Zenum.map(fn x -> x * 2 end)
+        |> Zenum.filter(fn x -> x <= 6 end)
+
+      assert actual == [2, 4, 6, 2, 4, 6]
+    end
+  end
+
+  describe "zenum initialization" do
+    test "explicit from_list/1 with variable" do
+      input = [1, 2, 3, 4, 1, 2, 3]
+
+      actual =
+        input
+        |> Zenum.from_list()
+        |> Zenum.map(fn x -> x * 2 end)
+        |> Zenum.filter(fn x -> x <= 6 end)
+
+      assert actual == [2, 4, 6, 2, 4, 6]
+    end
+
+    test "explicit from_list/1 with literal list" do
+      actual =
+        [1, 2, 3, 4, 1, 2, 3]
+        |> Zenum.from_list()
+        |> Zenum.map(fn x -> x * 2 end)
+        |> Zenum.filter(fn x -> x <= 6 end)
+
+      assert actual == [2, 4, 6, 2, 4, 6]
+    end
+
+    test "implicit from list with variable" do
+      input = [1, 2, 3, 4, 1, 2, 3]
+
+      actual =
+        input
+        |> Zenum.map(fn x -> x * 2 end)
+        |> Zenum.filter(fn x -> x <= 6 end)
+
+      assert actual == [2, 4, 6, 2, 4, 6]
+    end
+
+    test "implicit from list with literal list" do
+      actual =
+        [1, 2, 3, 4, 1, 2, 3]
+        |> Zenum.map(fn x -> x * 2 end)
+        |> Zenum.filter(fn x -> x <= 6 end)
+
+      assert actual == [2, 4, 6, 2, 4, 6]
+    end
   end
 
   defp double(x), do: x * 2
@@ -37,7 +92,6 @@ defmodule ZenumTest do
 
     actual =
       input
-      |> Zenum.from_list()
       |> Zenum.map(&double/1)
       |> Zenum.filter(&lte6/1)
 

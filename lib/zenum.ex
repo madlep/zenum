@@ -136,6 +136,7 @@ defmodule Zenum do
     ast
   end
 
+  # zenum function
   defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, op]}, _, args}, n)
        when is_map_key(@op_mod_lookup, op) do
     mod = Map.fetch!(@op_mod_lookup, op)
@@ -148,6 +149,18 @@ defmodule Zenum do
         [mod.build_op(n, op_args) | build_ops(z_args, n + 1)]
     end
   end
+
+  # first zenum op, passed variable
+  defp build_ops(arg = {var, _meta, ctx}, n) when is_atom(var) and is_atom(ctx) do
+    [Op.FromList.build_op(n, [arg])]
+  end
+
+  # first zenum op, passed list
+  defp build_ops(arg, n) when is_list(arg) do
+    [Op.FromList.build_op(n, [arg])]
+  end
+
+  # TODO first zenum op, passed Enumerable
 
   defp op_states(ops) do
     Enum.flat_map(ops, &Op.state(&1))
