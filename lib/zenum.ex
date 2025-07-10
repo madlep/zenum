@@ -57,6 +57,10 @@ defmodule Zenum do
     build_zenum(z, nil, {:any?, [f, false]}, __CALLER__)
   end
 
+  defmacro at(z, index, default \\ nil) do
+    build_zenum(z, nil, {:at, [index, default]}, __CALLER__)
+  end
+
   defmacro filter(z, f) do
     build_zenum(z, {:filter, [f]}, __CALLER__)
   end
@@ -77,6 +81,7 @@ defmodule Zenum do
   @op_mod_lookup %{
     all?: Op.Predicate,
     any?: Op.Predicate,
+    at: Op.At,
     filter: Op.Filter,
     map: Op.MapLiteralFn,
     from_list: Op.FromList,
