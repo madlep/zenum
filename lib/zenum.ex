@@ -58,6 +58,7 @@ defmodule Zenum do
   end
 
   defmacro at(z, index, default \\ nil) do
+    IO.inspect(Code.eval_quoted(index))
     build_zenum(z, nil, {:at, [index, default]}, __CALLER__)
   end
 

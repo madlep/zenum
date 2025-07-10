@@ -8,7 +8,7 @@ defmodule Zenum.Op.AtTest do
     assert Zenum.at([2, 4, 6], 2) == 6
     assert Zenum.at([2, 4, 6], 4) == nil
     assert Zenum.at([2, 4, 6], 4, :none) == :none
-    # assert Zenum.at([2, 4, 6], -2) == 4
-    # assert Zenum.at([2, 4, 6], -4) == nil
+    assert Zenum.at([2, 4, 6], -2) == 4
+    assert Zenum.at([2, 4, 6], -4) == nil
   end
 end
