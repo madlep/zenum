@@ -9,7 +9,7 @@ defmodule ZEnum.Op.ToList do
 
   def build_op(n, []), do: %ToList{n: n, acc: []}
 
-  defimpl ZEnum.Op do
+  defimpl Op do
     use Op.DefaultImpl
 
     def state(op = %ZEnum.Op.ToList{}) do

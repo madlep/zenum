@@ -11,9 +11,11 @@ defmodule ZEnum.Op.DefaultImpl do
       def push_fun_ast(op, ops, id, params, context) do
         value = Macro.var(:value, context)
 
+        fun_name = ZEnum.AST.push_fun_name(id, op.n)
+
         quote context: context, generated: true do
-          defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), unquote(value)) do
-            unquote(push_ast(op, ops, id, params, context, value))
+          defp unquote(fun_name)(unquote_splicing(params), unquote(value)) do
+            unquote(ZEnum.Op.push_ast(op, ops, id, params, context, value))
           end
         end
       end

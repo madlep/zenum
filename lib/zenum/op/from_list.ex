@@ -8,7 +8,7 @@ defmodule ZEnum.Op.FromList do
 
   def build_op(n, [data]), do: %FromList{n: n, data: data}
 
-  defimpl ZEnum.Op do
+  defimpl Op do
     use Op.DefaultImpl
 
     def state(op = %FromList{}) do

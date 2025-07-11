@@ -11,7 +11,7 @@ defmodule ZEnum.Op.At do
     %At{n: n, index: index, default: default}
   end
 
-  defimpl ZEnum.Op do
+  defimpl Op do
     use Op.DefaultImpl
 
     def state(op = %At{}) do

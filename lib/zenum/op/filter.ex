@@ -3,13 +3,11 @@ defmodule ZEnum.Op.Filter do
   alias ZEnum.Op
   alias ZEnum.Zipper
 
-  import ZEnum.AST
-
   defstruct [:n, :f]
 
   def build_op(n, [f]), do: %__MODULE__{n: n, f: f}
 
-  defimpl ZEnum.Op do
+  defimpl Op do
     use Op.DefaultImpl
 
     def push_ast(op = %Filter{}, ops, id, params, context, value) do
