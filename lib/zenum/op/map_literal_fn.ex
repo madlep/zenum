@@ -16,11 +16,8 @@ defmodule Zenum.Op.MapLiteralFn do
       ops2 = Zipper.prev!(ops)
 
       quote context: context, generated: true do
-        value2 = unquote(op.f).(unquote(value))
-
-        unquote(
-          Op.push_ast(Zipper.head!(ops2), ops2, id, params, context, Macro.var(:value2, context))
-        )
+        unquote(value) = unquote(op.f).(unquote(value))
+        unquote(Op.push_ast(Zipper.head!(ops2), ops2, id, params, context, value))
       end
     end
   end

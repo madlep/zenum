@@ -9,12 +9,11 @@ defmodule Zenum.Op.DefaultImpl do
       end
 
       def push_fun_ast(op, ops, id, params, context) do
+        value = Macro.var(:value, context)
+
         quote context: context, generated: true do
-          defp unquote(push_fun_name(id, op.n))(
-                 unquote_splicing(params),
-                 unquote(Macro.var(:value, context))
-               ) do
-            unquote(push_ast(op, ops, id, params, context, Macro.var(:value, context)))
+          defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), unquote(value)) do
+            unquote(push_ast(op, ops, id, params, context, value))
           end
         end
       end
