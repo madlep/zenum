@@ -61,6 +61,10 @@ defmodule ZEnum do
     build_zenum(z, nil, {:at, [index, default]}, __CALLER__)
   end
 
+  defmacro chunk_by(z, f) do
+    build_zenum(z, {:chunk_by, [f]}, __CALLER__)
+  end
+
   defmacro filter(z, f) do
     build_zenum(z, {:filter, [f]}, __CALLER__)
   end
@@ -82,6 +86,7 @@ defmodule ZEnum do
     all?: Op.Predicate,
     any?: Op.Predicate,
     at: Op.At,
+    chunk_by: Op.ChunkBy,
     filter: Op.Filter,
     map: Op.MapLiteralFn,
     from_list: Op.FromList,
