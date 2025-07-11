@@ -7,7 +7,7 @@ defprotocol Zenum.Op do
   @type param_value_ast() :: Macro.t()
 
   @type state() :: [state_param()]
-  @type state_param() :: {op_number(), op_name(), param_name(), param_value_ast()}
+  @type state_param() :: {op_number(), param_name(), param_value_ast()}
 
   @spec state(t()) :: state()
   def state(op)

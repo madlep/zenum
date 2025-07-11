@@ -16,8 +16,8 @@ defmodule Zenum.Op.At do
 
     def state(op = %At{}) do
       [
-        {op.n, :at, :at_i, 0},
-        {op.n, :at, :at_acc, []}
+        {op.n, :at_i, 0},
+        {op.n, :at_acc, []}
       ]
     end
 

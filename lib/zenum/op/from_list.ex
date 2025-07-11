@@ -12,7 +12,7 @@ defmodule Zenum.Op.FromList do
     use Op.DefaultImpl
 
     def state(op = %FromList{}) do
-      [{op.n, :from_list, :from_list_data, op.data}]
+      [{op.n, :from_list_data, op.data}]
     end
 
     def next_ast(op = %FromList{}, ops, id, params, context) do

@@ -130,7 +130,7 @@ defmodule Zenum do
     args_ast =
       ops
       |> op_states()
-      |> Enum.map(fn {n, _op_name, param, value} ->
+      |> Enum.map(fn {n, param, value} ->
         var_ast = state_param_name(n, param)
 
         quote generated: true do
@@ -187,7 +187,7 @@ defmodule Zenum do
   defp op_states_params_ast(op, context) do
     op
     |> op_states()
-    |> Enum.map(fn {n, _op_name, param, _value} ->
+    |> Enum.map(fn {n, param, _value} ->
       {state_param_name(n, param), [], context}
     end)
   end

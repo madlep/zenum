@@ -13,7 +13,7 @@ defmodule Zenum.Op.ToList do
     use Op.DefaultImpl
 
     def state(op = %Zenum.Op.ToList{}) do
-      [{op.n, :to_list, :to_list_acc, op.acc}]
+      [{op.n, :to_list_acc, op.acc}]
     end
 
     def push_ast(op = %ToList{}, ops, id, params, context, value) do
