@@ -10,14 +10,7 @@ defmodule Zenum.Op.Predicate do
   def build_op(n, [f, initial]), do: %Predicate{n: n, f: f, initial: initial}
 
   defimpl Zenum.Op do
-    def state(_op = %Predicate{}) do
-      []
-    end
-
-    def next_ast(_op = %Predicate{}, ops, id, params, context) do
-      ops2 = Zipper.next!(ops)
-      Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
-    end
+    use Op.DefaultImpl
 
     def push_ast(_op = %Predicate{f: nil, initial: true}, ops, id, params, context, value) do
       ops2 = Zipper.next!(ops)
@@ -65,14 +58,6 @@ defmodule Zenum.Op.Predicate do
           true
         else
           unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
-        end
-      end
-    end
-
-    def push_fun_ast(op = %Predicate{}, ops, id, params, context) do
-      quote context: context, generated: true do
-        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
-          unquote(push_ast(op, ops, id, params, context, Macro.var(:value, context)))
         end
       end
     end

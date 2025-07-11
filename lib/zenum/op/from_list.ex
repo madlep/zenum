@@ -1,7 +1,6 @@
 defmodule Zenum.Op.FromList do
   alias __MODULE__
   alias Zenum.Op
-  alias Zenum.Zipper
 
   import Zenum.AST
 
@@ -10,6 +9,8 @@ defmodule Zenum.Op.FromList do
   def build_op(n, [data]), do: %FromList{n: n, data: data}
 
   defimpl Zenum.Op do
+    use Op.DefaultImpl
+
     def state(op = %FromList{}) do
       [{op.n, :from_list, :from_list_data, op.data}]
     end
@@ -38,11 +39,6 @@ defmodule Zenum.Op.FromList do
 
     def push_fun_ast(_op = %FromList{}, _ops, _id, _params, _context) do
       []
-    end
-
-    def return_ast(_op = %FromList{}, ops, id, params, context) do
-      ops2 = Zipper.prev!(ops)
-      Op.return_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
   end
 end

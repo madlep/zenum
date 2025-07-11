@@ -12,16 +12,13 @@ defmodule Zenum.Op.At do
   end
 
   defimpl Zenum.Op do
+    use Op.DefaultImpl
+
     def state(op = %At{}) do
       [
         {op.n, :at, :at_i, 0},
         {op.n, :at, :at_acc, []}
       ]
-    end
-
-    def next_ast(_op = %At{}, ops, id, params, context) do
-      ops2 = Zipper.next!(ops)
-      Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
     end
 
     def push_ast(op = %At{}, ops, id, params, context, value) do
@@ -41,14 +38,6 @@ defmodule Zenum.Op.At do
         else
           unquote(Macro.var(acc, context)) = [unquote(value) | unquote(Macro.var(acc, context))]
           unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
-        end
-      end
-    end
-
-    def push_fun_ast(op = %At{}, ops, id, params, context) do
-      quote context: context, generated: true do
-        defp unquote(push_fun_name(id, op.n))(unquote_splicing(params), value) do
-          unquote(push_ast(op, ops, id, params, context, Macro.var(:value, context)))
         end
       end
     end
