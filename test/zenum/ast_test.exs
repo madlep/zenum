@@ -1,4 +1,4 @@
-defmodule Zenum.ASTTest do
+defmodule ZEnum.ASTTest do
   use ExUnit.Case
-  doctest Zenum.AST
+  doctest ZEnum.AST
 end

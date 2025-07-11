@@ -1,4 +1,4 @@
-defmodule Zenum.MixProject do
+defmodule ZEnum.MixProject do
   use Mix.Project
 
   def project do

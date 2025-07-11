@@ -1,14 +1,14 @@
-defmodule Zenum.Op.FromList do
+defmodule ZEnum.Op.FromList do
   alias __MODULE__
-  alias Zenum.Op
+  alias ZEnum.Op
 
-  import Zenum.AST
+  import ZEnum.AST
 
   defstruct [:n, :data]
 
   def build_op(n, [data]), do: %FromList{n: n, data: data}
 
-  defimpl Zenum.Op do
+  defimpl ZEnum.Op do
     use Op.DefaultImpl
 
     def state(op = %FromList{}) do

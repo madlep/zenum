@@ -1,8 +1,8 @@
-defmodule Zenum.ZipperTest do
+defmodule ZEnum.ZipperTest do
   use ExUnit.Case
-  doctest Zenum.Zipper
+  doctest ZEnum.Zipper
 
-  alias Zenum.Zipper, as: Z
+  alias ZEnum.Zipper, as: Z
 
   describe "new/1" do
     test "creates new zipper" do

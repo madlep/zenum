@@ -1,15 +1,15 @@
-defmodule Zenum.Op.Predicate do
+defmodule ZEnum.Op.Predicate do
   alias __MODULE__
-  alias Zenum.Op
-  alias Zenum.Zipper
+  alias ZEnum.Op
+  alias ZEnum.Zipper
 
-  import Zenum.AST
+  import ZEnum.AST
 
   defstruct [:n, :f, :initial]
 
   def build_op(n, [f, initial]), do: %Predicate{n: n, f: f, initial: initial}
 
-  defimpl Zenum.Op do
+  defimpl ZEnum.Op do
     use Op.DefaultImpl
 
     def push_ast(_op = %Predicate{f: nil, initial: true}, ops, id, params, context, value) do

@@ -1,10 +1,10 @@
-defmodule ExampleZenum do
-  use Zenum, debug: false
+defmodule ExampleZEnum do
+  use ZEnum, debug: false
 
   def do_stuff(input) do
     input
-    |> Zenum.from_list()
-    |> Zenum.map(fn x -> x * 2 end)
-    |> Zenum.filter(fn x -> x <= 6 end)
+    |> ZEnum.from_list()
+    |> ZEnum.map(fn x -> x * 2 end)
+    |> ZEnum.filter(fn x -> x <= 6 end)
   end
 end

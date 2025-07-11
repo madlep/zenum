@@ -1,9 +1,9 @@
-defmodule Zenum.Op.At do
+defmodule ZEnum.Op.At do
   alias __MODULE__
-  alias Zenum.Op
-  alias Zenum.Zipper
+  alias ZEnum.Op
+  alias ZEnum.Zipper
 
-  import Zenum.AST
+  import ZEnum.AST
 
   defstruct [:n, :index, :default, :acc]
 
@@ -11,7 +11,7 @@ defmodule Zenum.Op.At do
     %At{n: n, index: index, default: default}
   end
 
-  defimpl Zenum.Op do
+  defimpl ZEnum.Op do
     use Op.DefaultImpl
 
     def state(op = %At{}) do

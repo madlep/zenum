@@ -1,15 +1,15 @@
-defmodule Zenum.Op.MapLiteralFn do
+defmodule ZEnum.Op.MapLiteralFn do
   alias __MODULE__
-  alias Zenum.Op
-  alias Zenum.Zipper
+  alias ZEnum.Op
+  alias ZEnum.Zipper
 
-  import Zenum.AST
+  import ZEnum.AST
 
   defstruct [:n, :f]
 
   def build_op(n, [f]), do: %__MODULE__{n: n, f: f}
 
-  defimpl Zenum.Op do
+  defimpl ZEnum.Op do
     use Op.DefaultImpl
 
     def push_ast(op = %MapLiteralFn{}, ops, id, params, context, value) do

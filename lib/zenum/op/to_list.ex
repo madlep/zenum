@@ -1,18 +1,18 @@
-defmodule Zenum.Op.ToList do
+defmodule ZEnum.Op.ToList do
   alias __MODULE__
-  alias Zenum.Op
-  alias Zenum.Zipper
+  alias ZEnum.Op
+  alias ZEnum.Zipper
 
-  import Zenum.AST
+  import ZEnum.AST
 
   defstruct [:n, :acc]
 
   def build_op(n, []), do: %ToList{n: n, acc: []}
 
-  defimpl Zenum.Op do
+  defimpl ZEnum.Op do
     use Op.DefaultImpl
 
-    def state(op = %Zenum.Op.ToList{}) do
+    def state(op = %ZEnum.Op.ToList{}) do
       [{op.n, :to_list_acc, op.acc}]
     end
 

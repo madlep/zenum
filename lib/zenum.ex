@@ -1,7 +1,7 @@
-defmodule Zenum do
-  alias Zenum.AST
-  alias Zenum.Op
-  alias Zenum.Zipper
+defmodule ZEnum do
+  alias ZEnum.AST
+  alias ZEnum.Op
+  alias ZEnum.Zipper
 
   @type id() :: non_neg_integer()
 
@@ -15,8 +15,8 @@ defmodule Zenum do
     debug = Keyword.get(opts, :debug)
 
     quote generated: true do
-      require Zenum
-      @before_compile Zenum
+      require ZEnum
+      @before_compile ZEnum
 
       Module.register_attribute(__MODULE__, :zenums, accumulate: true)
       Module.register_attribute(__MODULE__, :zenum_used_funs, accumulate: true)
@@ -151,7 +151,7 @@ defmodule Zenum do
   end
 
   # zenum function
-  defp build_ops({{:., _, [{:__aliases__, _, [:Zenum]}, op]}, _, args}, n)
+  defp build_ops({{:., _, [{:__aliases__, _, [:ZEnum]}, op]}, _, args}, n)
        when is_map_key(@op_mod_lookup, op) do
     mod = Map.fetch!(@op_mod_lookup, op)
 

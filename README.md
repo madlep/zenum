@@ -1,31 +1,31 @@
-# Zenum
+# ZEnum
 
 Zero cost abstraction replacment for Elixir `Enum` and `Stream`. Faster and lower memory usage than both.
 
 ## Example
 
 ```elixir
-    defmodule ExampleZenum do
-      use Zenum
+    defmodule ExampleZEnum do
+      use ZEnum
 
       def do_stuff(input) do
         input
-        |> Zenum.from_list()
-        |> Zenum.map(fn x -> x * 2 end)
-        |> Zenum.filter(fn x -> x <= 6 end)
+        |> ZEnum.from_list()
+        |> ZEnum.map(fn x -> x * 2 end)
+        |> ZEnum.filter(fn x -> x <= 6 end)
       end
     end
 
-    ExampleZenum.do_stuff([1, 2, 3, 4, 1, 2, 3])
+    ExampleZEnum.do_stuff([1, 2, 3, 4, 1, 2, 3])
     # outputs [2, 4, 6, 2, 4, 6]
 ```
 
-Rather than creating an intermediate list like `Enum`, or using closure functions like `Stream`, `Zenum` instead generates optimised tail call recursive functions at compile time. This gives performance of crafting hand rolled functions, but hiding the complexity and state management.
+Rather than creating an intermediate list like `Enum`, or using closure functions like `Stream`, `ZEnum` instead generates optimised tail call recursive functions at compile time. This gives performance of crafting hand rolled functions, but hiding the complexity and state management.
 
 The above module gets turned into something like...
 
 ```elixir
-    defmodule ExampleZenum do
+    defmodule ExampleZEnum do
       def do_stuff(input) do
         [op_0_to_list_acc = [], op_3_from_list_data = input]
 
