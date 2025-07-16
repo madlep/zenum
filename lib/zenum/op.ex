@@ -22,7 +22,7 @@ defprotocol ZEnum.Op do
           ZEnum.id(),
           params(),
           context :: atom(),
-          v :: Macro.t()
+          v :: {:cont, Macro.t()} | {:halt, Macro.t()}
         ) ::
           Macro.output()
   def push_ast(op, ops, id, params, context, v)

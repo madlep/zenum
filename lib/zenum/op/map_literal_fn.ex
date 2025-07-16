@@ -10,12 +10,12 @@ defmodule ZEnum.Op.MapLiteralFn do
   defimpl Op do
     use Op.DefaultImpl
 
-    def push_ast(op = %MapLiteralFn{}, ops, id, params, context, value) do
+    def push_ast(op = %MapLiteralFn{}, ops, id, params, context, {zstate, value}) do
       ops2 = Zipper.prev!(ops)
 
       quote context: context, generated: true do
         unquote(value) = unquote(op.f).(unquote(value))
-        unquote(Op.push_ast(Zipper.head!(ops2), ops2, id, params, context, value))
+        unquote(Op.push_ast(Zipper.head!(ops2), ops2, id, params, context, {zstate, value}))
       end
     end
   end

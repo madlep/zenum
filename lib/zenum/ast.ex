@@ -1,9 +1,9 @@
 defmodule ZEnum.AST do
   alias ZEnum.Op
+  alias ZEnum.Zipper
 
   @type fun_name() :: atom()
   @type fun_param_name() :: atom()
-
   # {var, [], context}
   defguard is_var_ast(ast)
            when is_tuple(ast) and
@@ -179,4 +179,13 @@ defmodule ZEnum.AST do
   end
 
   def debug(ast, _title, _option, _env), do: ast
+
+  def next_or_return(ops, id, params, context, :cont) do
+    ops2 = Zipper.next!(ops)
+    Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
+  end
+
+  def next_or_return(ops, id, params, context, :halt) do
+    Op.return_ast(Zipper.head!(ops), ops, id, params, context)
+  end
 end

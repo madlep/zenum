@@ -2,6 +2,7 @@ defmodule ZEnum.Op.Filter do
   alias __MODULE__
   alias ZEnum.Op
   alias ZEnum.Zipper
+  import ZEnum.AST
 
   defstruct [:n, :f]
 
@@ -10,15 +11,14 @@ defmodule ZEnum.Op.Filter do
   defimpl Op do
     use Op.DefaultImpl
 
-    def push_ast(op = %Filter{}, ops, id, params, context, value) do
+    def push_ast(op = %Filter{}, ops, id, params, context, {zstate, value}) do
       ops_1 = Zipper.prev!(ops)
-      ops2 = Zipper.next!(ops)
 
       quote context: context, generated: true do
         if unquote(op.f).(unquote(value)) do
-          unquote(Op.push_ast(Zipper.head!(ops_1), ops_1, id, params, context, value))
+          unquote(Op.push_ast(Zipper.head!(ops_1), ops_1, id, params, context, {zstate, value}))
         else
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+          unquote(next_or_return(ops, id, params, context, zstate))
         end
       end
     end

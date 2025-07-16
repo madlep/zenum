@@ -15,7 +15,7 @@ defmodule ZEnum.Op.DefaultImpl do
 
         quote context: context, generated: true do
           defp unquote(fun_name)(unquote_splicing(params), unquote(value)) do
-            unquote(ZEnum.Op.push_ast(op, ops, id, params, context, value))
+            unquote(ZEnum.Op.push_ast(op, ops, id, params, context, {:cont, value}))
           end
         end
       end

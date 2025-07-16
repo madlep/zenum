@@ -1,7 +1,6 @@
 defmodule ZEnum.Op.ToList do
   alias __MODULE__
   alias ZEnum.Op
-  alias ZEnum.Zipper
 
   import ZEnum.AST
 
@@ -16,13 +15,12 @@ defmodule ZEnum.Op.ToList do
       [{op.n, :to_list_acc, op.acc}]
     end
 
-    def push_ast(op = %ToList{}, ops, id, params, context, value) do
+    def push_ast(op = %ToList{}, ops, id, params, context, {zstate, value}) do
       acc = Macro.var(fun_param_name(op.n, :to_list_acc), context)
-      ops2 = Zipper.next!(ops)
 
       quote do
         unquote(acc) = [unquote(value) | unquote(acc)]
-        unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+        unquote(next_or_return(ops, id, params, context, zstate))
       end
     end
 

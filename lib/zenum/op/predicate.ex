@@ -10,7 +10,14 @@ defmodule ZEnum.Op.Predicate do
   defimpl Op do
     use Op.DefaultImpl
 
-    def push_ast(_op = %Predicate{f: nil, initial: true}, ops, id, params, context, value) do
+    def push_ast(
+          _op = %Predicate{f: nil, initial: true},
+          ops,
+          id,
+          params,
+          context,
+          {_, value}
+        ) do
       ops2 = Zipper.next!(ops)
 
       quote do
@@ -22,7 +29,14 @@ defmodule ZEnum.Op.Predicate do
       end
     end
 
-    def push_ast(_op = %Predicate{f: nil, initial: false}, ops, id, params, context, value) do
+    def push_ast(
+          _op = %Predicate{f: nil, initial: false},
+          ops,
+          id,
+          params,
+          context,
+          {_, value}
+        ) do
       ops2 = Zipper.next!(ops)
 
       quote do
@@ -34,7 +48,7 @@ defmodule ZEnum.Op.Predicate do
       end
     end
 
-    def push_ast(_op = %Predicate{f: f, initial: true}, ops, id, params, context, value)
+    def push_ast(_op = %Predicate{f: f, initial: true}, ops, id, params, context, {_, value})
         when not is_nil(f) do
       ops2 = Zipper.next!(ops)
 
@@ -47,7 +61,7 @@ defmodule ZEnum.Op.Predicate do
       end
     end
 
-    def push_ast(_op = %Predicate{f: f, initial: false}, ops, id, params, context, value)
+    def push_ast(_op = %Predicate{f: f, initial: false}, ops, id, params, context, {_, value})
         when not is_nil(f) do
       ops2 = Zipper.next!(ops)
 

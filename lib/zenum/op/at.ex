@@ -1,7 +1,6 @@
 defmodule ZEnum.Op.At do
   alias __MODULE__
   alias ZEnum.Op
-  alias ZEnum.Zipper
 
   import ZEnum.AST
 
@@ -21,9 +20,7 @@ defmodule ZEnum.Op.At do
       ]
     end
 
-    def push_ast(op = %At{}, ops, id, params, context, value) do
-      ops2 = Zipper.next!(ops)
-
+    def push_ast(op = %At{}, ops, id, params, context, {zstate, value}) do
       i = Macro.var(fun_param_name(op.n, :at_i), context)
       acc = Macro.var(fun_param_name(op.n, :at_acc), context)
 
@@ -33,11 +30,11 @@ defmodule ZEnum.Op.At do
             unquote(value)
           else
             unquote(i) = unquote(i) + 1
-            unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+            unquote(next_or_return(ops, id, params, context, zstate))
           end
         else
           unquote(acc) = [unquote(value) | unquote(acc)]
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, id, params, context))
+          unquote(next_or_return(ops, id, params, context, zstate))
         end
       end
     end
