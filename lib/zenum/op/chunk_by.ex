@@ -23,7 +23,6 @@ defmodule ZEnum.Op.ChunkBy do
     def push_ast(op = %ChunkBy{}, ops, params, context, {:cont, value}) do
       prev = Macro.var(fun_param_name(op.n, :chunk_by_prev), context)
       acc = Macro.var(fun_param_name(op.n, :chunk_by_acc), context)
-      chunk_var = Macro.var(:chunk, context)
 
       quote context: context, generated: true do
         chunk_value = unquote(op.f).(unquote(value))
@@ -37,7 +36,7 @@ defmodule ZEnum.Op.ChunkBy do
             chunk = Enum.reverse(unquote(acc))
             unquote(prev) = chunk_value
             unquote(acc) = [unquote(value)]
-            unquote(push(ops, params, context, {:cont, chunk_var}))
+            unquote(push(ops, params, context, {:cont, Macro.var(:chunk, context)}))
           else
             unquote(acc) = [unquote(value) | unquote(acc)]
             unquote(next(ops, params, context))
@@ -54,7 +53,6 @@ defmodule ZEnum.Op.ChunkBy do
           unquote(return(ops, params, context))
         else
           chunk = Enum.reverse(unquote(acc))
-          unquote(acc) = :__chunk_by_done__
           unquote(push(ops, params, context, {:halt, Macro.var(:chunk, context)}))
         end
       end

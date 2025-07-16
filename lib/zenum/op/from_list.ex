@@ -19,14 +19,15 @@ defmodule ZEnum.Op.FromList do
     def next_ast(op = %FromList{}, ops, params, context) do
       data_param = fun_param_name(op.n, :from_list_data)
       data = Macro.var(data_param, context)
-      from_list_data2 = Macro.var(:from_list_data2, context)
       ops_push = Zipper.prev!(ops)
 
       quote context: context, generated: true do
         case unquote(data) do
           [value_from_list_data | from_list_data2] ->
             unquote(push_fun_name(Zipper.head!(ops_push)))(
-              unquote_splicing(set_param(params, data_param, from_list_data2)),
+              unquote_splicing(
+                set_param(params, data_param, Macro.var(:from_list_data2, context))
+              ),
               value_from_list_data
             )
 
