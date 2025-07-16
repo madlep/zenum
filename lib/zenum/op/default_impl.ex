@@ -7,10 +7,7 @@ defmodule ZEnum.Op.DefaultImpl do
 
       def state(_op), do: []
 
-      def next_ast(_op, ops, params, context) do
-        ops2 = ZEnum.Zipper.next!(ops)
-        ZEnum.Op.next_ast(ZEnum.Zipper.head!(ops2), ops2, params, context)
-      end
+      def next_ast(_op, ops, params, context), do: ZEnum.AST.next(ops, params, context)
 
       def push_fun_ast(op, ops, params, context) do
         value = Macro.var(:value, context)
@@ -25,8 +22,7 @@ defmodule ZEnum.Op.DefaultImpl do
       end
 
       def return_ast(_op, ops, params, context) do
-        ops2 = ZEnum.Zipper.prev!(ops)
-        ZEnum.Op.return_ast(ZEnum.Zipper.head!(ops2), ops2, params, context)
+        ZEnum.AST.return(ops, params, context)
       end
 
       defoverridable state: 1, next_ast: 4, push_fun_ast: 4, return_ast: 4

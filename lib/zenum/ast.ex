@@ -180,12 +180,23 @@ defmodule ZEnum.AST do
 
   def debug(ast, _title, _option, _env), do: ast
 
-  def next_or_return(ops, params, context, :cont) do
+  def next_or_return(ops, params, context, :cont), do: next(ops, params, context)
+
+  def next_or_return(ops, params, context, :halt),
+    do: Op.return_ast(Zipper.head!(ops), ops, params, context)
+
+  def next(ops, params, context) do
     ops2 = Zipper.next!(ops)
     Op.next_ast(Zipper.head!(ops2), ops2, params, context)
   end
 
-  def next_or_return(ops, params, context, :halt) do
-    Op.return_ast(Zipper.head!(ops), ops, params, context)
+  def push(ops, params, context, {zstate, value}) do
+    ops2 = Zipper.prev!(ops)
+    Op.push_ast(Zipper.head!(ops2), ops2, params, context, {zstate, value})
+  end
+
+  def return(ops, params, context) do
+    ops2 = ZEnum.Zipper.prev!(ops)
+    ZEnum.Op.return_ast(ZEnum.Zipper.head!(ops2), ops2, params, context)
   end
 end

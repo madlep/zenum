@@ -31,7 +31,7 @@ defmodule ZEnum.Op.FromList do
             )
 
           [] ->
-            unquote(return_ast(op, ops, params, context))
+            unquote(return(ops, params, context))
         end
       end
     end

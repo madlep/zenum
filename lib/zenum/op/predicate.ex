@@ -1,7 +1,7 @@
 defmodule ZEnum.Op.Predicate do
   alias __MODULE__
   alias ZEnum.Op
-  alias ZEnum.Zipper
+  import ZEnum.AST
 
   defstruct [:id, :n, :f, :initial]
 
@@ -11,52 +11,28 @@ defmodule ZEnum.Op.Predicate do
     use Op.DefaultImpl
 
     def push_ast(_op = %Predicate{f: nil, initial: true}, ops, params, context, {_, value}) do
-      ops2 = Zipper.next!(ops)
-
       quote do
-        if unquote(value) do
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, params, context))
-        else
-          false
-        end
+        if unquote(value), do: unquote(next(ops, params, context)), else: false
       end
     end
 
     def push_ast(_op = %Predicate{f: nil, initial: false}, ops, params, context, {_, value}) do
-      ops2 = Zipper.next!(ops)
-
       quote do
-        if unquote(value) do
-          true
-        else
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, params, context))
-        end
+        if unquote(value), do: true, else: unquote(next(ops, params, context))
       end
     end
 
     def push_ast(_op = %Predicate{f: f, initial: true}, ops, params, context, {_, value})
         when not is_nil(f) do
-      ops2 = Zipper.next!(ops)
-
       quote do
-        if unquote(f).(unquote(value)) do
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, params, context))
-        else
-          false
-        end
+        if unquote(f).(unquote(value)), do: unquote(next(ops, params, context)), else: false
       end
     end
 
     def push_ast(_op = %Predicate{f: f, initial: false}, ops, params, context, {_, value})
         when not is_nil(f) do
-      ops2 = Zipper.next!(ops)
-
       quote do
-        if unquote(f).(unquote(value)) do
-          true
-        else
-          unquote(Op.next_ast(Zipper.head!(ops2), ops2, params, context))
-        end
+        if unquote(f).(unquote(value)), do: true, else: unquote(next(ops, params, context))
       end
     end
 
