@@ -1,12 +1,13 @@
 defmodule ZEnum.Op.FromList do
   alias __MODULE__
   alias ZEnum.Op
+  alias ZEnum.Zipper
 
   import ZEnum.AST
 
-  defstruct [:n, :data]
+  defstruct [:id, :n, :data]
 
-  def build_op(n, [data]), do: %FromList{n: n, data: data}
+  def build_op(id, n, [data]), do: %FromList{id: id, n: n, data: data}
 
   defimpl Op do
     use Op.DefaultImpl
@@ -15,28 +16,29 @@ defmodule ZEnum.Op.FromList do
       [{op.n, :from_list_data, op.data}]
     end
 
-    def next_ast(op = %FromList{}, ops, id, params, context) do
+    def next_ast(op = %FromList{}, ops, params, context) do
       data_param = fun_param_name(op.n, :from_list_data)
       data = Macro.var(data_param, context)
       from_list_data2 = Macro.var(:from_list_data2, context)
+      ops_push = Zipper.prev!(ops)
 
       quote context: context, generated: true do
         case unquote(data) do
           [value_from_list_data | from_list_data2] ->
-            unquote(push_fun_name(id, op.n - 1))(
+            unquote(push_fun_name(Zipper.head!(ops_push)))(
               unquote_splicing(set_param(params, data_param, from_list_data2)),
               value_from_list_data
             )
 
           [] ->
-            unquote(return_ast(op, ops, id, params, context))
+            unquote(return_ast(op, ops, params, context))
         end
       end
     end
 
     # no-op - shouldn't be called
-    def push_ast(_op = %FromList{}, _ops, _id, _params, _context, _v), do: []
+    def push_ast(_op = %FromList{}, _ops, _params, _context, _v), do: []
 
-    def push_fun_ast(_op = %FromList{}, _ops, _id, _params, _context), do: []
+    def push_fun_ast(_op = %FromList{}, _ops, _params, _context), do: []
   end
 end

@@ -9,34 +9,32 @@ defprotocol ZEnum.Op do
   @type state() :: [state_param()]
   @type state_param() :: {op_number(), param_name(), param_value_ast()}
 
+  @spec zenum_id(t()) :: ZEnum.id()
+  def zenum_id(op)
+
+  @spec op_number(t()) :: op_number()
+  def op_number(op)
+
   @spec state(t()) :: state()
   def state(op)
 
-  @spec next_ast(t(), ops :: ZEnum.Zipper.t(t()), ZEnum.id(), params(), context :: atom()) ::
+  @spec next_ast(t(), ops :: ZEnum.Zipper.t(t()), params(), context :: atom()) ::
           Macro.output()
-  def next_ast(op, ops, id, params, context)
+  def next_ast(op, ops, params, context)
 
   @spec push_ast(
           t(),
           ops :: ZEnum.Zipper.t(t()),
-          ZEnum.id(),
           params(),
           context :: atom(),
           v :: {:cont, Macro.t()} | {:halt, Macro.t()}
-        ) ::
-          Macro.output()
-  def push_ast(op, ops, id, params, context, v)
-
-  @spec push_fun_ast(t(), ops :: ZEnum.Zipper.t(t()), ZEnum.id(), params(), context :: atom()) ::
-          Macro.output()
-  def push_fun_ast(op, ops, id, params, context)
-
-  @spec return_ast(
-          t(),
-          ops :: ZEnum.Zipper.t(t()),
-          ZEnum.id(),
-          params(),
-          context :: atom()
         ) :: Macro.output()
-  def return_ast(op, ops, id, params, context)
+  def push_ast(op, ops, params, context, v)
+
+  @spec push_fun_ast(t(), ops :: ZEnum.Zipper.t(t()), params(), context :: atom()) ::
+          Macro.output()
+  def push_fun_ast(op, ops, params, context)
+
+  @spec return_ast(t(), ops :: ZEnum.Zipper.t(t()), params(), context :: atom()) :: Macro.output()
+  def return_ast(op, ops, params, context)
 end

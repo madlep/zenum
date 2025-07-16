@@ -14,11 +14,11 @@ defmodule ZEnum.AST do
   @doc """
   Generates function name for pushing values forward
 
-      iex> ZEnum.AST.push_fun_name(0, 2)
+      iex> ZEnum.AST.push_fun_name(ZEnum.Op.ToList.build_op(0, 2, []))
       :__z_0_2__
   """
-  @spec push_fun_name(ZEnum.id(), Op.op_number()) :: fun_name()
-  def push_fun_name(id, n), do: :"__z_#{id}_#{n}__"
+  @spec push_fun_name(Op.t()) :: fun_name()
+  def push_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}__"
 
   @doc """
   Generates function param name used in generated function signatures
@@ -180,12 +180,12 @@ defmodule ZEnum.AST do
 
   def debug(ast, _title, _option, _env), do: ast
 
-  def next_or_return(ops, id, params, context, :cont) do
+  def next_or_return(ops, params, context, :cont) do
     ops2 = Zipper.next!(ops)
-    Op.next_ast(Zipper.head!(ops2), ops2, id, params, context)
+    Op.next_ast(Zipper.head!(ops2), ops2, params, context)
   end
 
-  def next_or_return(ops, id, params, context, :halt) do
-    Op.return_ast(Zipper.head!(ops), ops, id, params, context)
+  def next_or_return(ops, params, context, :halt) do
+    Op.return_ast(Zipper.head!(ops), ops, params, context)
   end
 end

@@ -3,19 +3,19 @@ defmodule ZEnum.Op.MapLiteralFn do
   alias ZEnum.Op
   alias ZEnum.Zipper
 
-  defstruct [:n, :f]
+  defstruct [:id, :n, :f]
 
-  def build_op(n, [f]), do: %__MODULE__{n: n, f: f}
+  def build_op(id, n, [f]), do: %__MODULE__{id: id, n: n, f: f}
 
   defimpl Op do
     use Op.DefaultImpl
 
-    def push_ast(op = %MapLiteralFn{}, ops, id, params, context, {zstate, value}) do
+    def push_ast(op = %MapLiteralFn{}, ops, params, context, {zstate, value}) do
       ops2 = Zipper.prev!(ops)
 
       quote context: context, generated: true do
         unquote(value) = unquote(op.f).(unquote(value))
-        unquote(Op.push_ast(Zipper.head!(ops2), ops2, id, params, context, {zstate, value}))
+        unquote(Op.push_ast(Zipper.head!(ops2), ops2, params, context, {zstate, value}))
       end
     end
   end

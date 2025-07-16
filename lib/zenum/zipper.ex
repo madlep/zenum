@@ -257,6 +257,11 @@ defmodule ZEnum.Zipper do
     end
   end
 
+  @spec map(t(v), (v -> v2)) :: t(v2) when v: var, v2: var
+  def map(z = %Z{}, f) do
+    %Z{prev: z.prev, next: Enum.map(z.next, f)}
+  end
+
   defimpl Enumerable do
     def count(z), do: {:ok, Z.count(z)}
 

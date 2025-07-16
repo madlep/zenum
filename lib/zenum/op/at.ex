@@ -4,10 +4,10 @@ defmodule ZEnum.Op.At do
 
   import ZEnum.AST
 
-  defstruct [:n, :index, :default, :acc]
+  defstruct [:id, :n, :index, :default, :acc]
 
-  def build_op(n, [index, default]) do
-    %At{n: n, index: index, default: default}
+  def build_op(id, n, [index, default]) do
+    %At{id: id, n: n, index: index, default: default}
   end
 
   defimpl Op do
@@ -20,7 +20,7 @@ defmodule ZEnum.Op.At do
       ]
     end
 
-    def push_ast(op = %At{}, ops, id, params, context, {zstate, value}) do
+    def push_ast(op = %At{}, ops, params, context, {zstate, value}) do
       i = Macro.var(fun_param_name(op.n, :at_i), context)
       acc = Macro.var(fun_param_name(op.n, :at_acc), context)
 
@@ -30,16 +30,16 @@ defmodule ZEnum.Op.At do
             unquote(value)
           else
             unquote(i) = unquote(i) + 1
-            unquote(next_or_return(ops, id, params, context, zstate))
+            unquote(next_or_return(ops, params, context, zstate))
           end
         else
           unquote(acc) = [unquote(value) | unquote(acc)]
-          unquote(next_or_return(ops, id, params, context, zstate))
+          unquote(next_or_return(ops, params, context, zstate))
         end
       end
     end
 
-    def return_ast(op = %At{}, _ops, _id, _params, context) do
+    def return_ast(op = %At{}, _ops, _params, context) do
       acc = Macro.var(fun_param_name(op.n, :at_acc), context)
 
       quote do
