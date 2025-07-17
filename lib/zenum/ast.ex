@@ -121,6 +121,7 @@ defmodule ZEnum.AST do
   Find zenum functions that are called in a quoted AST. Used to figure out
   which generated functions to *keep*.
   """
+  @spec used_zenum_funs(Macro.t()) :: [fun_name()]
   def used_zenum_funs(ast) do
     # TODO Just checks if a function is called from *anywhere*, not if that function is ultimately recursively called from the root
 
@@ -151,6 +152,10 @@ defmodule ZEnum.AST do
     |> elem(1)
   end
 
+  @doc """
+  Trim zenum functions that are *NOT* in the list of used functions that are
+  called. Used to get rid of redundant generated functions in zenum pipelines.
+  """
   def remove_unused_zenum_funs(ast, used_funs) do
     # rewrite generated AST keeping only function defp clauses that are used
     ast
@@ -167,7 +172,16 @@ defmodule ZEnum.AST do
       t ->
         t
     end)
-    |> Enum.reject(&(&1 == :__zenum_unused__))
+    |> Macro.prewalk(fn
+      {:__block__, meta, t} when is_list(t) ->
+        {:__block__, meta, Enum.reject(t, &(&1 == :__zenum_unused__))}
+
+      t when is_list(t) ->
+        Enum.reject(t, &(&1 == :__zenum_unused__))
+
+      t ->
+        t
+    end)
   end
 
   def normalize_pipes({:|>, _, [piped_ast | [{fn_ast, fn_context, fn_args}]]}) do
