@@ -10,7 +10,6 @@ Zero cost abstraction replacment for Elixir `Enum` and `Stream`. Faster and lowe
 
       def do_stuff(input) do
         input
-        |> ZEnum.from_list()
         |> ZEnum.map(fn x -> x * 2 end)
         |> ZEnum.filter(fn x -> x <= 6 end)
       end
