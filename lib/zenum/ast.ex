@@ -118,21 +118,29 @@ defmodule ZEnum.AST do
   # def inlineable_local_fun_partial?(_ast), do: false
 
   @doc """
+  Find zenum functions that are called in a quoted AST. Used to figure out
+  which generated functions to *keep*.
   """
   def used_zenum_funs(ast) do
+    # TODO Just checks if a function is called from *anywhere*, not if that function is ultimately recursively called from the root
+
     ast
-    |> Macro.prewalk([], fn
-      {:defp, _, [_f, [do: fbody]]}, acc ->
+    |> Macro.prewalk(MapSet.new(), fn
+      {:defp, _, [_f, [do: {:__block__, _, fbody}]]}, acc ->
         # skip function name and arguments AST and rewrite subsequent AST to be
         # processed, as it's indistinguishable from function calls, and it'll
         # show up as a false-positive function invocation
         {fbody, acc}
 
+      {:defp, _, [_f, [do: fbody]]}, acc ->
+        # single line function bodies need to be wrapped, or they are considered "walked" already, and won't be reprocessed below
+        {List.wrap(fbody), acc}
+
       t = {op, _, _}, acc when is_atom(op) ->
         # we found a function call
         if Atom.to_string(op) =~ ~r/^__z_\d+_\d+__$/ do
           # we found a __z_1_2__ style zenum function call
-          {t, [op | acc]}
+          {t, MapSet.put(acc, op)}
         else
           {t, acc}
         end
