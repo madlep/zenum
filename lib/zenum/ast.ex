@@ -29,6 +29,14 @@ defmodule ZEnum.AST do
   @spec fun_param_name(ZEnum.id(), Op.param_name()) :: fun_param_name()
   def fun_param_name(n, name), do: :"op_#{n}_#{name}"
 
+  @doc """
+  Sets param AST in list of params AST args. Intended to set up params to pass
+  to a function call in quoted AST code
+
+      iex> ZEnum.AST.set_param([{:a, [], MyModule}, {:b, [], MyModule}, {:c, [], MyModule}], :b, 123)
+      [{:a, [], MyModule}, 123, {:c, [], MyModule}]
+  """
+  @spec set_param(Op.params(), Op.param_name(), Op.param_value_ast()) :: Op.params()
   def set_param(params_ast, param, new_param_ast) do
     i = Enum.find_index(params_ast, fn {p, _, _} -> p == param end)
     List.replace_at(params_ast, i, new_param_ast)
