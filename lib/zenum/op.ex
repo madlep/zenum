@@ -2,8 +2,9 @@ defprotocol ZEnum.Op do
   @type op_number() :: non_neg_integer()
   @type op_name() :: atom()
 
-  @type params() :: [param_name()]
+  @type params() :: [param_name_ast()]
   @type param_name() :: atom()
+  @type param_name_ast() :: {param_name(), [], context :: atom()}
   @type param_value_ast() :: Macro.t()
 
   @type state() :: [state_param()]
