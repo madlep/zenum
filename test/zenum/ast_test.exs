@@ -67,4 +67,40 @@ defmodule ZEnum.ASTTest do
       assert(ZEnum.AST.remove_unused_zenum_funs(ast, used) == expected_removed_ast)
     end
   end
+
+  describe "normalize_pipes/1" do
+    test "converts pipes and regular nested functions into same AST" do
+      piped_ast =
+        quote do
+          my_data
+          |> foo()
+          |> bar(:a)
+          |> baz(:b, :c)
+        end
+
+      nested_ast =
+        quote do
+          baz(bar(foo(my_data), :a), :b, :c)
+        end
+
+      assert(ZEnum.AST.normalize_pipes(piped_ast) == ZEnum.AST.normalize_pipes(nested_ast))
+    end
+
+    test "converts pipes and regular nested functions into nested AST" do
+      piped_ast =
+        quote do
+          my_data
+          |> foo()
+          |> bar(:a)
+          |> baz(:b, :c)
+        end
+
+      nested_ast =
+        quote do
+          baz(bar(foo(my_data), :a), :b, :c)
+        end
+
+      assert(ZEnum.AST.normalize_pipes(piped_ast) == nested_ast)
+    end
+  end
 end

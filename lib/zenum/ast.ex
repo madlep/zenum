@@ -184,6 +184,9 @@ defmodule ZEnum.AST do
     end)
   end
 
+  @doc """
+  Convert piped and nested function calls into same AST
+  """
   def normalize_pipes({:|>, _, [piped_ast | [{fn_ast, fn_context, fn_args}]]}) do
     {fn_ast, fn_context, [normalize_pipes(piped_ast) | fn_args]}
   end
