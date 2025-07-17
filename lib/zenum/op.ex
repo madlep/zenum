@@ -9,6 +9,9 @@ defprotocol ZEnum.Op do
   @type state() :: [state_param()]
   @type state_param() :: {op_number(), param_name(), param_value_ast()}
 
+  @type zstate() :: :cont | :halt
+  @type push_value() :: {zstate(), Macro.t()}
+
   @spec zenum_id(t()) :: ZEnum.id()
   def zenum_id(op)
 
@@ -22,13 +25,8 @@ defprotocol ZEnum.Op do
           Macro.output()
   def next_ast(op, ops, params, context)
 
-  @spec push_ast(
-          t(),
-          ops :: ZEnum.Zipper.t(t()),
-          params(),
-          context :: atom(),
-          v :: {:cont, Macro.t()} | {:halt, Macro.t()}
-        ) :: Macro.output()
+  @spec push_ast(t(), ops :: ZEnum.Zipper.t(t()), params(), context :: atom(), push_value()) ::
+          Macro.output()
   def push_ast(op, ops, params, context, v)
 
   @spec push_fun_ast(t(), ops :: ZEnum.Zipper.t(t()), params(), context :: atom()) ::
