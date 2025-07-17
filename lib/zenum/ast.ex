@@ -156,6 +156,7 @@ defmodule ZEnum.AST do
   Trim zenum functions that are *NOT* in the list of used functions that are
   called. Used to get rid of redundant generated functions in zenum pipelines.
   """
+  @spec remove_unused_zenum_funs(Macro.t(), list(fun_name())) :: Macro.t()
   def remove_unused_zenum_funs(ast, used_funs) do
     # rewrite generated AST keeping only function defp clauses that are used
     ast
@@ -187,6 +188,7 @@ defmodule ZEnum.AST do
   @doc """
   Convert piped and nested function calls into same AST
   """
+  @spec normalize_pipes(Macro.t()) :: Macro.t()
   def normalize_pipes({:|>, _, [piped_ast | [{fn_ast, fn_context, fn_args}]]}) do
     {fn_ast, fn_context, [normalize_pipes(piped_ast) | fn_args]}
   end
@@ -195,6 +197,10 @@ defmodule ZEnum.AST do
     ast
   end
 
+  @doc """
+  Display generated AST/functions
+  """
+  @spec debug(Macro.t(), String.t(), ZEnum.debug_opt(), Macro.Env.t()) :: Macro.t()
   def debug(ast, title, true, _env) do
     IO.puts("== #{title} ==")
     ast |> Macro.to_string() |> IO.puts()
@@ -215,21 +221,41 @@ defmodule ZEnum.AST do
 
   def debug(ast, _title, _option, _env), do: ast
 
+  @doc """
+  Generate AST that will either process the next value, or return and terminate the zenum chain, depending on whether zstate is `:cont` or `:halt`
+  """
+  @spec next_or_return(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom(), ZEnum.Op.zstate()) ::
+          Macro.t()
+  def next_or_return(ops, params, context, zstate)
+
   def next_or_return(ops, params, context, :cont), do: next(ops, params, context)
 
   def next_or_return(ops, params, context, :halt),
     do: Op.return_ast(Zipper.head!(ops), ops, params, context)
 
+  @doc """
+  Generate AST that will process the next value
+  """
+  @spec next(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom()) :: Macro.t()
   def next(ops, params, context) do
     ops2 = Zipper.next!(ops)
     Op.next_ast(Zipper.head!(ops2), ops2, params, context)
   end
 
+  @doc """
+  Generate AST that will push a value from this op along the zenum chain to be processed
+  """
+  @spec push(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom(), ZEnum.Op.push_value()) ::
+          Macro.t()
   def push(ops, params, context, {zstate, value}) do
     ops2 = Zipper.prev!(ops)
     Op.push_ast(Zipper.head!(ops2), ops2, params, context, {zstate, value})
   end
 
+  @doc """
+  Generate AST that will signal to the zenum chain that values from this op have been exhausted, and to do any finishing up actions, and terminate
+  """
+  @spec return(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom()) :: Macro.t()
   def return(ops, params, context) do
     ops2 = ZEnum.Zipper.prev!(ops)
     ZEnum.Op.return_ast(ZEnum.Zipper.head!(ops2), ops2, params, context)

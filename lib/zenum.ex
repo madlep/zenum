@@ -5,6 +5,10 @@ defmodule ZEnum do
 
   @type id() :: non_neg_integer()
 
+  @type debug_opt() :: boolean() | :ast | :warn
+  @type opts() :: [{:debug, debug_opt()}]
+
+  @spec __using__(opts()) :: Macro.t()
   defmacro __using__(opts) do
     try do
       Keyword.validate!(opts, [:debug])
