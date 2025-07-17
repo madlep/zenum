@@ -50,73 +50,75 @@ defmodule ZEnum.AST do
   #
   # literal fn
   # {:fn, _, [{:->, _, [ args, body ]}]}
+  #
+  # @spec inlineable_fun?(Macro.t()) :: boolean()
+  # def inlineable_fun?(ast) do
+  #   # ||
+  #   inlineable_local_fun_ref?(ast) ||
+  #     inlineable_local_fun_partial?(ast)
+  #
+  #   # inlineable_remote_fun_ref?(ast) ||
+  #   # inlineable_remote_fun_partial?(ast) ||
+  #   # inlineable_literal_fn(ast)
+  # end
+  #
+  # @doc """
+  # Check if AST is for a local function reference which can be inlined. 
+  # ASTs representing local function references can always be inlined
 
-  @spec inlineable_fun?(Macro.t()) :: boolean()
-  def inlineable_fun?(ast) do
-    # ||
-    inlineable_local_fun_ref?(ast) ||
-      inlineable_local_fun_partial?(ast)
+  #     iex> ast = quote(do: &foo/1)
+  #     iex> ZEnum.AST.inlineable_local_fun_ref?(ast)
+  #     true
 
-    # inlineable_remote_fun_ref?(ast) ||
-    # inlineable_remote_fun_partial?(ast) ||
-    # inlineable_literal_fn(ast)
-  end
+  #     iex> ast = quote(do: my_variable)
+  #     iex> ZEnum.AST.inlineable_local_fun_ref?(ast)
+  #     false
+  # """
+  # @spec inlineable_local_fun_ref?(Macro.t()) :: boolean()
+  # def inlineable_local_fun_ref?(ast) do
+  #   match?(
+  #     {:&, _, [{:/, _, [{fun, _, _}, arity]}]}
+  #     when is_atom(fun) and is_integer(arity) and arity >= 0,
+  #     ast
+  #   )
+  # end
+  #
+  # # local function partial apply eg `&foo(&1, :abc)`
+  # @doc """
+  # Check if AST is for a local partial function reference which can be inlined.
+
+  #     iex> ast = quote(do: &foo(&1, :abc))
+  #     iex> ZEnum.AST.inlineable_local_fun_partial?(ast)
+  #     true
+
+  #     iex> ast = quote(do: 1 + 2)
+  #     iex> ZEnum.AST.inlineable_local_fun_partial?(ast)
+  #     false
+
+  # Local partial function references can't be inlined if they close over variables.
+
+  #     iex> ast = quote(do: &foo(&1, my_var))
+  #     iex> ZEnum.AST.inlineable_local_fun_partial?(ast)
+  #     false
+
+  # """
+  # @spec inlineable_local_fun_partial?(Macro.t()) :: boolean()
+  # def inlineable_local_fun_partial?({:&, [], [{fun, [], args}]})
+  #     when is_atom(fun) and is_list(args) do
+  #   # check all arguments are literals or placeholders, and not closure variables
+  #   args
+  #   |> Macro.prewalk(true, fn
+  #     ast, true when is_var_ast(ast) -> {ast, false}
+  #     ast, true -> {ast, true}
+  #     ast, false -> {ast, false}
+  #   end)
+  #   |> elem(1)
+  # end
+
+  # def inlineable_local_fun_partial?(_ast), do: false
 
   @doc """
-  Check if AST is for a local function reference which can be inlined. 
-  ASTs representing local function references can always be inlined
-
-      iex> ast = quote(do: &foo/1)
-      iex> ZEnum.AST.inlineable_local_fun_ref?(ast)
-      true
-
-      iex> ast = quote(do: my_variable)
-      iex> ZEnum.AST.inlineable_local_fun_ref?(ast)
-      false
   """
-  @spec inlineable_local_fun_ref?(Macro.t()) :: boolean()
-  def inlineable_local_fun_ref?(ast) do
-    match?(
-      {:&, _, [{:/, _, [{fun, _, _}, arity]}]}
-      when is_atom(fun) and is_integer(arity) and arity >= 0,
-      ast
-    )
-  end
-
-  # local function partial apply eg `&foo(&1, :abc)`
-  @doc """
-  Check if AST is for a local partial function reference which can be inlined.
-
-      iex> ast = quote(do: &foo(&1, :abc))
-      iex> ZEnum.AST.inlineable_local_fun_partial?(ast)
-      true
-
-      iex> ast = quote(do: 1 + 2)
-      iex> ZEnum.AST.inlineable_local_fun_partial?(ast)
-      false
-
-  Local partial function references can't be inlined if they close over variables.
-
-      iex> ast = quote(do: &foo(&1, my_var))
-      iex> ZEnum.AST.inlineable_local_fun_partial?(ast)
-      false
-
-  """
-  @spec inlineable_local_fun_partial?(Macro.t()) :: boolean()
-  def inlineable_local_fun_partial?({:&, [], [{fun, [], args}]})
-      when is_atom(fun) and is_list(args) do
-    # check all arguments are literals or placeholders, and not closure variables
-    args
-    |> Macro.prewalk(true, fn
-      ast, true when is_var_ast(ast) -> {ast, false}
-      ast, true -> {ast, true}
-      ast, false -> {ast, false}
-    end)
-    |> elem(1)
-  end
-
-  def inlineable_local_fun_partial?(_ast), do: false
-
   def used_zenum_funs(ast) do
     ast
     |> Macro.prewalk([], fn
