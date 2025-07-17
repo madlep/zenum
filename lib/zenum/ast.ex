@@ -196,7 +196,7 @@ defmodule ZEnum.AST do
   end
 
   def debug(ast, title, true, _env) do
-    IO.puts(title)
+    IO.puts("== #{title} ==")
     ast |> Macro.to_string() |> IO.puts()
 
     ast
@@ -209,7 +209,7 @@ defmodule ZEnum.AST do
   end
 
   def debug(ast, title, :ast, _env) do
-    IO.puts(title)
+    IO.puts("== #{title} ==")
     IO.inspect(ast)
   end
 
