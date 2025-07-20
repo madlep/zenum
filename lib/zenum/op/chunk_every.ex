@@ -24,13 +24,13 @@ defmodule ZEnum.Op.ChunkEvery do
       ]
     end
 
-    def push_ast(op, ops, params, context, {zstate, value}) do
+    def push_ast(op = %ChunkEvery{}, ops, params, context, {zstate, value}) do
       count = Macro.var(fun_param_name(op.n, :count), context)
       step = Macro.var(fun_param_name(op.n, :step), context)
       chunk = Macro.var(fun_param_name(op.n, :chunk), context)
       chunk_size = Macro.var(fun_param_name(op.n, :chunk_size), context)
 
-      quote context: context, generated: true, unquote: true do
+      quote context: context, generated: true do
         unquote(chunk) = [unquote(value) | unquote(chunk)]
         unquote(chunk_size) = unquote(chunk_size) + 1
 
