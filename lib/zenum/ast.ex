@@ -20,6 +20,8 @@ defmodule ZEnum.AST do
   @spec push_fun_name(Op.t()) :: fun_name()
   def push_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}__"
 
+  def next_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}_next__"
+
   @doc """
   Generates function param name used in generated function signatures
 
@@ -139,7 +141,7 @@ defmodule ZEnum.AST do
 
       t = {op, _, _}, acc when is_atom(op) ->
         # we found a function call
-        if Atom.to_string(op) =~ ~r/^__z_\d+_\d+__$/ do
+        if Atom.to_string(op) =~ ~r/^__z_\d+_\d+[_\w]*__$/ do
           # we found a __z_1_2__ style zenum function call
           {t, MapSet.put(acc, op)}
         else

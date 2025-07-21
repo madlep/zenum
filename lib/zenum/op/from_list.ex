@@ -1,7 +1,6 @@
 defmodule ZEnum.Op.FromList do
   alias __MODULE__
   alias ZEnum.Op
-  alias ZEnum.Zipper
 
   import ZEnum.AST
 
@@ -16,24 +15,26 @@ defmodule ZEnum.Op.FromList do
       [{op.n, :from_list_data, op.data}]
     end
 
-    def next_ast(op = %FromList{}, ops, params, context) do
-      data_param = fun_param_name(op.n, :from_list_data)
-      data = Macro.var(data_param, context)
-      ops_push = Zipper.prev!(ops)
+    def next_fun_ast(op = %FromList{}, ops, params, context) do
+      from_list_data = Macro.var(fun_param_name(op.n, :from_list_data), context)
+      next_fun_name = next_fun_name(op)
 
       quote context: context, generated: true do
-        case unquote(data) do
-          [value_from_list_data | from_list_data2] ->
-            unquote(push_fun_name(Zipper.head!(ops_push)))(
-              unquote_splicing(
-                set_param(params, data_param, Macro.var(:from_list_data2, context))
-              ),
-              value_from_list_data
-            )
+        defp unquote(next_fun_name)(unquote_splicing(params)) do
+          case unquote(from_list_data) do
+            [value | unquote(from_list_data)] ->
+              unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
 
-          [] ->
-            unquote(return(ops, params, context))
+            [] ->
+              unquote(return(ops, params, context))
+          end
         end
+      end
+    end
+
+    def next_ast(op = %FromList{}, _ops, params, context) do
+      quote context: context, generated: true do
+        unquote(next_fun_name(op))(unquote_splicing(params))
       end
     end
 

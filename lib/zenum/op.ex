@@ -43,6 +43,10 @@ defprotocol ZEnum.Op do
           Macro.output()
   def next_ast(op, ops, params, context)
 
+  @spec next_fun_ast(t(), ops :: ZEnum.Zipper.t(t()), params(), context :: atom()) ::
+          Macro.output()
+  def next_fun_ast(op, ops, params, context)
+
   @doc """
   Generate the AST output for pushing a generated/transformed value along the
   zenum chain to the consumer of this op for further processing in that op. The

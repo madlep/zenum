@@ -9,6 +9,16 @@ defmodule ZEnum.Op.DefaultImpl do
 
       def next_ast(_op, ops, params, context), do: ZEnum.AST.next(ops, params, context)
 
+      def next_fun_ast(op, ops, params, context) do
+        fun_name = ZEnum.AST.next_fun_name(op)
+
+        quote context: context, generated: true do
+          defp unquote(fun_name)(unquote_splicing(params)) do
+            unquote(ZEnum.Op.next_ast(op, ops, params, context))
+          end
+        end
+      end
+
       def push_fun_ast(op, ops, params, context) do
         value = Macro.var(:value, context)
 
@@ -25,7 +35,7 @@ defmodule ZEnum.Op.DefaultImpl do
         ZEnum.AST.return(ops, params, context)
       end
 
-      defoverridable state: 1, next_ast: 4, push_fun_ast: 4, return_ast: 4
+      defoverridable state: 1, next_ast: 4, next_fun_ast: 4, push_fun_ast: 4, return_ast: 4
     end
   end
 end

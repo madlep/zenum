@@ -40,7 +40,7 @@ defmodule ZEnum do
         params_ast = op_states_params_ast(ops, mod)
 
         Zipper.map_zipper(ops, fn ops_zipper ->
-          Op.push_fun_ast(Zipper.head!(ops_zipper), ops_zipper, params_ast, mod)
+          Op.next_fun_ast(Zipper.head!(ops_zipper), ops_zipper, params_ast, mod)
         end)
       end)
 
@@ -152,23 +152,16 @@ defmodule ZEnum do
     Module.put_attribute(mod, :zenums, {id, ops})
     Module.put_attribute(mod, :zenum_id, id + 1)
 
-    params_ast = op_states_params_ast(ops, mod)
-
     args_ast =
       ops
       |> op_states()
-      |> Enum.map(fn {n, param, value} ->
-        var_ast = state_param_name(n, param)
-
-        quote generated: true do
-          unquote(Macro.var(var_ast, mod)) = unquote(value)
-        end
+      |> Enum.map(fn {_n, _param, value} ->
+        value
       end)
 
     ast =
       quote generated: true do
-        unquote(args_ast)
-        unquote(Op.next_ast(Zipper.head!(ops), ops, params_ast, mod))
+        unquote(AST.next_fun_name(Zipper.head!(ops)))(unquote_splicing(args_ast))
       end
 
     record_used_funs(ast, env.module)
