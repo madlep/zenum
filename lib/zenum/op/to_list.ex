@@ -18,7 +18,7 @@ defmodule ZEnum.Op.ToList do
     def push_ast(op = %ToList{}, ops, params, context, {zstate, value}) do
       acc = Macro.var(fun_param_name(op.n, :to_list_acc), context)
 
-      quote do
+      quote generated: true, context: context do
         unquote(acc) = [unquote(value) | unquote(acc)]
         unquote(next_or_return(ops, params, context, zstate))
       end
@@ -27,7 +27,7 @@ defmodule ZEnum.Op.ToList do
     def return_ast(op = %ToList{}, _ops, _params, context) do
       to_list_acc = Macro.var(fun_param_name(op.n, :to_list_acc), context)
 
-      quote context: context do
+      quote generated: true, context: context do
         Enum.reverse(unquote(to_list_acc))
       end
     end

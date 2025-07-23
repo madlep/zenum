@@ -165,7 +165,7 @@ defmodule ZEnum do
       end)
 
     ast =
-      quote generated: true do
+      quote generated: true, context: mod do
         unquote(AST.next_fun_name(Zipper.head!(ops)))(unquote_splicing(args_ast))
       end
 

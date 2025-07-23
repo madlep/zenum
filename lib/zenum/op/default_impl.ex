@@ -1,6 +1,6 @@
 defmodule ZEnum.Op.DefaultImpl do
   defmacro __using__(_opts) do
-    quote do
+    quote generated: true do
       def zenum_id(op), do: op.id
 
       def op_number(op), do: op.n

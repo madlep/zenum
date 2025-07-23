@@ -24,7 +24,7 @@ defmodule ZEnum.Op.At do
       i = Macro.var(fun_param_name(op.n, :at_i), context)
       acc = Macro.var(fun_param_name(op.n, :at_acc), context)
 
-      quote do
+      quote generated: true, context: context do
         if unquote(op.index) >= 0 do
           if unquote(i) == unquote(op.index) do
             unquote(value)
@@ -42,7 +42,7 @@ defmodule ZEnum.Op.At do
     def return_ast(op = %At{}, _ops, _params, context) do
       acc = Macro.var(fun_param_name(op.n, :at_acc), context)
 
-      quote do
+      quote generated: true, context: context do
         if unquote(op.index) >= 0 do
           unquote(op.default)
         else
