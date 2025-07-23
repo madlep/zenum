@@ -85,6 +85,10 @@ defmodule ZEnum do
     build_zenum(z, {:filter, [f]}, __CALLER__)
   end
 
+  defmacro from_enum(enum) do
+    build_zenum([], {:from_enum, [enum]}, __CALLER__)
+  end
+
   defmacro from_list(list) do
     build_zenum([], {:from_list, [list]}, __CALLER__)
   end
@@ -108,6 +112,7 @@ defmodule ZEnum do
     filter: Op.Filter,
     map: Op.MapLiteralFn,
     from_list: Op.FromList,
+    from_enum: Op.FromEnum,
     to_list: Op.ToList
   }
 
@@ -186,12 +191,12 @@ defmodule ZEnum do
 
   # first zenum op, passed variable
   defp build_ops(arg = {var, _meta, ctx}, id, n) when is_atom(var) and is_atom(ctx) do
-    [Op.FromList.build_op(id, n, [arg])]
+    [Op.FromEnum.build_op(id, n, [arg])]
   end
 
   # first zenum op, passed list
   defp build_ops(arg, id, n) when is_list(arg) do
-    [Op.FromList.build_op(id, n, [arg])]
+    [Op.FromEnum.build_op(id, n, [arg])]
   end
 
   # TODO first zenum op, passed Enumerable
