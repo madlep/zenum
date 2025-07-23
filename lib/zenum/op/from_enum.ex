@@ -34,16 +34,25 @@ defmodule ZEnum.Op.FromEnum do
           ZEnum.Enumerable.continuation(unquote(op.enum))
         end
 
-      [{op.n, :from_enum_continuation, continuation_ast}]
+      enum_type =
+        quote generated: true do
+          ZEnum.Enumerable.type(unquote(op.enum))
+        end
+
+      [
+        {op.n, :from_enum_continuation, continuation_ast},
+        {op.n, :from_enum_type, enum_type}
+      ]
     end
 
     def next_fun_ast(op = %FromEnum{}, ops, params, context) do
       from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
+      from_enum_type = Macro.var(fun_param_name(op.n, :from_enum_type), context)
       next_fun_name = next_fun_name(op)
 
       quote context: context, generated: true do
         defp unquote(next_fun_name)(unquote_splicing(params)) do
-          case ZEnum.Enumerable.next(unquote(from_enum_continuation)) do
+          case ZEnum.Enumerable.next(unquote(from_enum_continuation), unquote(from_enum_type)) do
             {:suspended, value, unquote(from_enum_continuation)} ->
               unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
 
