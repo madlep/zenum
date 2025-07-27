@@ -40,7 +40,14 @@ defmodule ZEnum.AST do
   """
   @spec set_param(Op.params(), Op.param_name(), Op.param_value_ast()) :: Op.params()
   def set_param(params_ast, param, new_param_ast) do
-    i = Enum.find_index(params_ast, fn {p, _, _} -> p == param end)
+    i =
+      Enum.find_index(params_ast, fn
+        # only replace named vars
+        {p, _, _} -> p == param
+        # matches etc are ignored and can't be replaced once set
+        _ -> false
+      end)
+
     List.replace_at(params_ast, i, new_param_ast)
   end
 

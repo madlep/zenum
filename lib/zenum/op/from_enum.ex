@@ -46,6 +46,59 @@ defmodule ZEnum.Op.FromEnum do
     end
 
     def next_fun_ast(op = %FromEnum{}, ops, params, context) do
+      [
+        list_next_ast(op, ops, params, context),
+        enum_next_ast(op, ops, params, context)
+      ]
+    end
+
+    defp list_next_ast(op = %FromEnum{}, ops, params, context) do
+      from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
+      from_enum_type = Macro.var(fun_param_name(op.n, :from_enum_type), context)
+      next_fun_name = next_fun_name(op)
+
+      cont_list_params =
+        params
+        |> set_param(
+          fun_param_name(op.n, :from_enum_continuation),
+          quote context: context, generated: true do
+            [unquote(Macro.var(:value, context)) | unquote(from_enum_continuation)]
+          end
+        )
+        |> set_param(
+          fun_param_name(op.n, :from_enum_type),
+          quote context: context, generated: true do
+            unquote(from_enum_type) = :list
+          end
+        )
+
+      done_list_params =
+        params
+        |> set_param(
+          fun_param_name(op.n, :from_enum_continuation),
+          quote context: context, generated: true do
+            []
+          end
+        )
+        |> set_param(
+          fun_param_name(op.n, :from_enum_type),
+          quote context: context, generated: true do
+            unquote(from_enum_type) = :list
+          end
+        )
+
+      quote context: context, generated: true do
+        defp unquote(next_fun_name)(unquote_splicing(cont_list_params)) do
+          unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
+        end
+
+        defp unquote(next_fun_name)(unquote_splicing(done_list_params)) do
+          unquote(return(ops, params, context))
+        end
+      end
+    end
+
+    defp enum_next_ast(op = %FromEnum{}, ops, params, context) do
       from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
       from_enum_type = Macro.var(fun_param_name(op.n, :from_enum_type), context)
       next_fun_name = next_fun_name(op)
