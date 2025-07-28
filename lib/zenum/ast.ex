@@ -170,14 +170,13 @@ defmodule ZEnum.AST do
     # rewrite generated AST keeping only function defp clauses that are used
     ast
     |> Macro.prewalk(fn
+      t = {:defp, _, [{:when, _, [{f, _, _args} | _]}, [do: _]]} ->
+        # we found a function definition
+        if f in used_funs, do: t, else: :__zenum_unused__
+
       t = {:defp, _, [{f, _, _args}, [do: _]]} ->
         # we found a function definition
-        if f in used_funs do
-          t
-        else
-          # which isn't in the list of called functions, so mark it in the AST to be removed
-          :__zenum_unused__
-        end
+        if f in used_funs, do: t, else: :__zenum_unused__
 
       t ->
         t
