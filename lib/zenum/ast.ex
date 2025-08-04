@@ -246,8 +246,8 @@ defmodule ZEnum.AST do
   """
   @spec next(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom()) :: Macro.t()
   def next(ops, params, context) do
-    ops2 = Zipper.next!(ops)
-    Op.next_ast(Zipper.head!(ops2), ops2, params, context)
+    prev_ops = Zipper.prev!(ops)
+    Op.next_ast(Zipper.head!(prev_ops), prev_ops, params, context)
   end
 
   @doc """
@@ -256,8 +256,8 @@ defmodule ZEnum.AST do
   @spec push(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom(), ZEnum.Op.push_value()) ::
           Macro.t()
   def push(ops, params, context, {zstate, value}) do
-    ops2 = Zipper.prev!(ops)
-    Op.push_ast(Zipper.head!(ops2), ops2, params, context, {zstate, value})
+    next_ops = Zipper.next!(ops)
+    Op.push_ast(Zipper.head!(next_ops), next_ops, params, context, {zstate, value})
   end
 
   @doc """
@@ -265,7 +265,7 @@ defmodule ZEnum.AST do
   """
   @spec return(ZEnum.Zipper.t(ZEnum.Op.t()), ZEnum.Op.params(), atom()) :: Macro.t()
   def return(ops, params, context) do
-    ops2 = ZEnum.Zipper.prev!(ops)
-    ZEnum.Op.return_ast(ZEnum.Zipper.head!(ops2), ops2, params, context)
+    next_ops = ZEnum.Zipper.next!(ops)
+    ZEnum.Op.return_ast(ZEnum.Zipper.head!(next_ops), next_ops, params, context)
   end
 end

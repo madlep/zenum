@@ -144,6 +144,7 @@ defmodule ZEnum do
   defp build_zenum_ast(ops, env) do
     ops_zipper =
       ops
+      |> Enum.reverse()
       |> set_op_numbers()
       |> Zipper.new()
 
