@@ -5,7 +5,7 @@ defmodule ZEnum.Op.Predicate do
 
   defstruct [:id, :n, :f, :initial]
 
-  def build_op(id, n, [f, initial]), do: %Predicate{id: id, n: n, f: f, initial: initial}
+  def build_op(id, [f, initial]), do: %Predicate{id: id, f: f, initial: initial}
 
   defimpl Op do
     use Op.DefaultImpl

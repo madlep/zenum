@@ -6,13 +6,13 @@ defmodule ZEnum.Op.FromList do
 
   defstruct [:id, :n, :list]
 
-  def build_op(id, n, [list]), do: %FromList{id: id, n: n, list: list}
+  def build_op(id, [list]), do: %FromList{id: id, list: list}
 
   defimpl Op do
     use Op.DefaultImpl
 
     def state(op = %FromList{}) do
-      [{op.n, :from_list_list, op.list}]
+      [{:from_list_list, op.list}]
     end
 
     def next_fun_ast(op = %FromList{}, ops, params, context) do

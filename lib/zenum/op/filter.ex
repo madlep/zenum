@@ -5,7 +5,7 @@ defmodule ZEnum.Op.Filter do
 
   defstruct [:id, :n, :f]
 
-  def build_op(id, n, [f]), do: %__MODULE__{id: id, n: n, f: f}
+  def build_op(id, [f]), do: %__MODULE__{id: id, f: f}
 
   defimpl Op do
     use Op.DefaultImpl

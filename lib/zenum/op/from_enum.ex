@@ -6,10 +6,10 @@ defmodule ZEnum.Op.FromEnum do
 
   defstruct [:id, :n, :enum]
 
-  def build_op(id, n, [enum]) do
+  def build_op(id, [enum]) do
     case enum do
       list when is_list(list) ->
-        %Op.FromList{id: id, n: n, list: list}
+        %Op.FromList{id: id, list: list}
 
       # {:.., _, [first, last]} ->
       #   %FromRange{id: id, n: n, first: first, last: last, step: nil}
@@ -21,7 +21,7 @@ defmodule ZEnum.Op.FromEnum do
       #   %FromHash{id: id, n: n, key_values: key_values}
 
       enum = {var, _, context} when is_atom(var) and is_atom(context) ->
-        %FromEnum{id: id, n: n, enum: enum}
+        %FromEnum{id: id, enum: enum}
     end
   end
 
@@ -40,8 +40,8 @@ defmodule ZEnum.Op.FromEnum do
         end
 
       [
-        {op.n, :from_enum_continuation, continuation_ast},
-        {op.n, :from_enum_type, enum_type}
+        {:from_enum_continuation, continuation_ast},
+        {:from_enum_type, enum_type}
       ]
     end
 

@@ -8,7 +8,7 @@ defprotocol ZEnum.Op do
   @type param_value_ast() :: Macro.t()
 
   @type state() :: [state_param()]
-  @type state_param() :: {op_number(), param_name(), param_value_ast()}
+  @type state_param() :: {param_name(), param_value_ast()}
 
   @type zstate() :: :cont | :halt
   @type push_value() :: {zstate(), Macro.t()}
@@ -24,6 +24,12 @@ defprotocol ZEnum.Op do
   """
   @spec op_number(t()) :: op_number()
   def op_number(op)
+
+  @doc """
+  Set the sequence number of the operation of this zenum chain
+  """
+  @spec set_op_number(t(), op_number()) :: t()
+  def set_op_number(op, n)
 
   @doc """
   Build the initial state function arguments for the operation that will be

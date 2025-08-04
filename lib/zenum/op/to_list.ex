@@ -6,13 +6,13 @@ defmodule ZEnum.Op.ToList do
 
   defstruct [:id, :n, :acc]
 
-  def build_op(id, n, []), do: %ToList{id: id, n: n, acc: []}
+  def build_op(id, []), do: %ToList{id: id, acc: []}
 
   defimpl Op do
     use Op.DefaultImpl
 
     def state(op = %ZEnum.Op.ToList{}) do
-      [{op.n, :to_list_acc, op.acc}]
+      [{:to_list_acc, op.acc}]
     end
 
     def push_ast(op = %ToList{}, ops, params, context, {zstate, value}) do

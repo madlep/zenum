@@ -6,17 +6,17 @@ defmodule ZEnum.Op.At do
 
   defstruct [:id, :n, :index, :default, :acc]
 
-  def build_op(id, n, [index, default]) do
-    %At{id: id, n: n, index: index, default: default}
+  def build_op(id, [index, default]) do
+    %At{id: id, index: index, default: default}
   end
 
   defimpl Op do
     use Op.DefaultImpl
 
-    def state(op = %At{}) do
+    def state(_op = %At{}) do
       [
-        {op.n, :at_i, 0},
-        {op.n, :at_acc, []}
+        {:at_i, 0},
+        {:at_acc, []}
       ]
     end
 

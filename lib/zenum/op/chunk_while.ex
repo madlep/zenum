@@ -6,8 +6,8 @@ defmodule ZEnum.Op.ChunkWhile do
 
   defstruct [:id, :n, :acc, :chunk_fun, :after_fun]
 
-  def build_op(id, n, [acc, chunk_fun, after_fun]) do
-    %ChunkWhile{id: id, n: n, acc: acc, chunk_fun: chunk_fun, after_fun: after_fun}
+  def build_op(id, [acc, chunk_fun, after_fun]) do
+    %ChunkWhile{id: id, acc: acc, chunk_fun: chunk_fun, after_fun: after_fun}
   end
 
   defimpl Op do
@@ -15,7 +15,7 @@ defmodule ZEnum.Op.ChunkWhile do
 
     def state(op = %ChunkWhile{}) do
       [
-        {op.n, :chunk_while_acc, op.acc}
+        {:chunk_while_acc, op.acc}
       ]
     end
 

@@ -5,6 +5,8 @@ defmodule ZEnum.Op.DefaultImpl do
 
       def op_number(op), do: op.n
 
+      def set_op_number(op, n), do: %{op | n: n}
+
       def state(_op), do: []
 
       def next_ast(_op, ops, params, context), do: ZEnum.AST.next(ops, params, context)

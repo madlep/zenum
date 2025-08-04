@@ -116,49 +116,44 @@ defmodule ZEnum do
     to_list: Op.ToList
   }
 
-  defp build_zenum(z, op_op_args, term_op_term_op_args \\ {:to_list, []}, env)
+  defp build_zenum(z, op_and_args, term_op_and_args \\ {:to_list, []}, env)
 
   defp build_zenum(z, nil, {term_op, term_op_args}, env)
        when is_map_key(@op_mod_lookup, term_op) do
     id = Module.get_attribute(env.module, :zenum_id, 0)
 
-    ops =
-      z
-      |> AST.normalize_pipes()
-      |> build_ops(id, 1)
-
-    term_op_mod = @op_mod_lookup[term_op]
-
-    [term_op_mod.build_op(id, 0, term_op_args) | ops]
-    |> Zipper.new()
-    |> build_zenum(env)
+    [
+      @op_mod_lookup[term_op].build_op(id, term_op_args)
+      | z |> AST.normalize_pipes() |> build_ops(id)
+    ]
+    |> build_zenum_ast(env)
   end
 
   defp build_zenum(z, {op, op_args}, {term_op, term_op_args}, env)
        when is_map_key(@op_mod_lookup, op) and is_map_key(@op_mod_lookup, term_op) do
     id = Module.get_attribute(env.module, :zenum_id, 0)
 
-    ops =
-      z
-      |> AST.normalize_pipes()
-      |> build_ops(id, 2)
-
-    op_mod = @op_mod_lookup[op]
-    term_op_mod = @op_mod_lookup[term_op]
-
-    [term_op_mod.build_op(id, 0, term_op_args), op_mod.build_op(id, 1, op_args) | ops]
-    |> Zipper.new()
-    |> build_zenum(env)
+    [
+      @op_mod_lookup[term_op].build_op(id, term_op_args),
+      @op_mod_lookup[op].build_op(id, op_args)
+      | z |> AST.normalize_pipes() |> build_ops(id)
+    ]
+    |> build_zenum_ast(env)
   end
 
-  defp build_zenum(ops, env) do
+  defp build_zenum_ast(ops, env) do
+    ops_zipper =
+      ops
+      |> set_op_numbers()
+      |> Zipper.new()
+
     mod = env.module
     id = Module.get_attribute(mod, :zenum_id, 0)
-    Module.put_attribute(mod, :zenums, {id, ops})
+    Module.put_attribute(mod, :zenums, {id, ops_zipper})
     Module.put_attribute(mod, :zenum_id, id + 1)
 
     args_ast =
-      ops
+      ops_zipper
       |> op_states()
       |> Enum.map(fn {_n, _param, value} ->
         value
@@ -166,7 +161,7 @@ defmodule ZEnum do
 
     ast =
       quote generated: true, context: mod do
-        unquote(AST.next_fun_name(Zipper.head!(ops)))(unquote_splicing(args_ast))
+        unquote(AST.next_fun_name(Zipper.head!(ops_zipper)))(unquote_splicing(args_ast))
       end
 
     record_used_funs(ast, env.module)
@@ -175,34 +170,46 @@ defmodule ZEnum do
     ast
   end
 
+  defp set_op_numbers(ops) do
+    ops
+    |> Enum.with_index()
+    |> Enum.map(fn {op, n} -> Op.set_op_number(op, n) end)
+  end
+
   # zenum function
-  defp build_ops({{:., _, [{:__aliases__, _, [:ZEnum]}, op]}, _, args}, id, n)
+  defp build_ops({{:., _, [{:__aliases__, _, [:ZEnum]}, op]}, _, args}, id)
        when is_map_key(@op_mod_lookup, op) do
     mod = Map.fetch!(@op_mod_lookup, op)
 
     case args do
       [arg] ->
-        [mod.build_op(id, n, [arg])]
+        [mod.build_op(id, [arg])]
 
       [z_args | op_args] ->
-        [mod.build_op(id, n, op_args) | build_ops(z_args, id, n + 1)]
+        [mod.build_op(id, op_args) | build_ops(z_args, id)]
     end
   end
 
   # first zenum op, passed variable
-  defp build_ops(arg = {var, _meta, ctx}, id, n) when is_atom(var) and is_atom(ctx) do
-    [Op.FromEnum.build_op(id, n, [arg])]
+  defp build_ops(arg = {var, _meta, ctx}, id) when is_atom(var) and is_atom(ctx) do
+    [Op.FromEnum.build_op(id, [arg])]
   end
 
   # first zenum op, passed list
-  defp build_ops(arg, id, n) when is_list(arg) do
-    [Op.FromEnum.build_op(id, n, [arg])]
+  defp build_ops(arg, id) when is_list(arg) do
+    [Op.FromEnum.build_op(id, [arg])]
   end
 
   # TODO first zenum op, passed Enumerable
 
   defp op_states(ops) do
-    Enum.flat_map(ops, &Op.state(&1))
+    ops
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {op, n} ->
+      op
+      |> Op.state()
+      |> Enum.map(fn {param, value} -> {n, param, value} end)
+    end)
   end
 
   defp state_param_name(n, param) do

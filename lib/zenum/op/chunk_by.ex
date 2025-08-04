@@ -6,17 +6,17 @@ defmodule ZEnum.Op.ChunkBy do
 
   defstruct [:id, :n, :f]
 
-  def build_op(id, n, [f]) do
-    %ChunkBy{id: id, n: n, f: f}
+  def build_op(id, [f]) do
+    %ChunkBy{id: id, f: f}
   end
 
   defimpl Op do
     use Op.DefaultImpl
 
-    def state(op = %ChunkBy{}) do
+    def state(_op = %ChunkBy{}) do
       [
-        {op.n, :chunk_by_prev, :__chunk_by_init__},
-        {op.n, :chunk_by_acc, []}
+        {:chunk_by_prev, :__chunk_by_init__},
+        {:chunk_by_acc, []}
       ]
     end
 

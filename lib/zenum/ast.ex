@@ -14,7 +14,7 @@ defmodule ZEnum.AST do
   @doc """
   Generates function name for pushing values forward
 
-      iex> ZEnum.AST.push_fun_name(ZEnum.Op.ToList.build_op(0, 2, []))
+      iex> ZEnum.AST.push_fun_name(%ZEnum.Op.ToList{id: 0, n: 2, acc: []})
       :__z_0_2__
   """
   @spec push_fun_name(Op.t()) :: fun_name()

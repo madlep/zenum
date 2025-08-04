@@ -6,8 +6,8 @@ defmodule ZEnum.Op.ChunkEvery do
 
   defstruct [:id, :n, :count, :step, :leftover]
 
-  def build_op(id, n, [count, step, leftover]) do
-    %ChunkEvery{id: id, n: n, count: count, step: step, leftover: leftover}
+  def build_op(id, [count, step, leftover]) do
+    %ChunkEvery{id: id, count: count, step: step, leftover: leftover}
   end
 
   defimpl Op do
@@ -15,12 +15,12 @@ defmodule ZEnum.Op.ChunkEvery do
 
     def state(op = %ChunkEvery{}) do
       [
-        {op.n, :count, op.count},
-        {op.n, :step, op.step},
-        {op.n, :leftover, op.leftover},
-        {op.n, :chunk, []},
-        {op.n, :chunk_size, 0},
-        {op.n, :acc, []}
+        {:count, op.count},
+        {:step, op.step},
+        {:leftover, op.leftover},
+        {:chunk, []},
+        {:chunk_size, 0},
+        {:acc, []}
       ]
     end
 
