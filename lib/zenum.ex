@@ -42,8 +42,12 @@ defmodule ZEnum do
         params_ast = op_states_params_ast(ops, mod)
 
         Zipper.map_zipper(ops, fn ops_zipper ->
-          Op.next_fun_ast(Zipper.head!(ops_zipper), ops_zipper, params_ast, mod)
+          [
+            Op.next_fun_ast(Zipper.head!(ops_zipper), ops_zipper, params_ast, mod),
+            Op.push_fun_ast(Zipper.head!(ops_zipper), ops_zipper, params_ast, mod)
+          ]
         end)
+        |> List.flatten()
       end)
 
     record_used_funs(ast, mod)

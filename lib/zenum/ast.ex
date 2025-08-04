@@ -15,10 +15,10 @@ defmodule ZEnum.AST do
   Generates function name for pushing values forward
 
       iex> ZEnum.AST.push_fun_name(%ZEnum.Op.ToList{id: 0, n: 2, acc: []})
-      :__z_0_2__
+      :__z_0_2_push__
   """
   @spec push_fun_name(Op.t()) :: fun_name()
-  def push_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}__"
+  def push_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}_push__"
 
   def next_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}_next__"
 
