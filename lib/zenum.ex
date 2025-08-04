@@ -11,12 +11,13 @@ defmodule ZEnum do
   @spec __using__(opts()) :: Macro.t()
   defmacro __using__(opts) do
     try do
-      Keyword.validate!(opts, [:debug])
+      Keyword.validate!(opts, [:debug, :treeshake])
     rescue
       e in ArgumentError -> IO.warn(e.message, __CALLER__)
     end
 
     debug = Keyword.get(opts, :debug)
+    treeshake = Keyword.get(opts, :treeshake, true)
 
     quote generated: true do
       require ZEnum
@@ -26,6 +27,7 @@ defmodule ZEnum do
       Module.register_attribute(__MODULE__, :zenum_used_funs, accumulate: true)
 
       Module.put_attribute(__MODULE__, :zenum_debug, unquote(debug))
+      Module.put_attribute(__MODULE__, :zenum_treeshake, unquote(treeshake))
       Module.put_attribute(__MODULE__, :zenum_id, 0)
     end
   end
@@ -45,7 +47,8 @@ defmodule ZEnum do
       end)
 
     record_used_funs(ast, mod)
-    ast = trim_unused_funs(ast, mod)
+
+    ast = if Module.get_attribute(mod, :zenum_treeshake, true), do: treeshake(ast, mod), else: ast
 
     AST.debug(ast, "__before_compile__", Module.get_attribute(mod, :zenum_debug), __CALLER__)
 
@@ -231,12 +234,12 @@ defmodule ZEnum do
     |> Enum.each(&Module.put_attribute(module, :zenum_used_funs, &1))
   end
 
-  defp trim_unused_funs(ast, module) do
+  defp treeshake(ast, module) do
     used_funs =
       Module.get_attribute(module, :zenum_used_funs)
       |> Enum.uniq()
 
     ast
-    |> AST.remove_unused_zenum_funs(used_funs)
+    |> AST.treeshake(used_funs)
   end
 end

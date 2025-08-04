@@ -26,7 +26,7 @@ defmodule ZEnum.ASTTest do
     end
   end
 
-  describe "remove_unused_zenum_funs/2" do
+  describe "treeshake/2" do
     test "removed functions that aren't in used list" do
       ast =
         quote do
@@ -64,7 +64,7 @@ defmodule ZEnum.ASTTest do
           defp __z_0_4__(a, b), do: __z_0_1__(a, b)
         end
 
-      assert(ZEnum.AST.remove_unused_zenum_funs(ast, used) == expected_removed_ast)
+      assert(ZEnum.AST.treeshake(ast, used) == expected_removed_ast)
     end
   end
 

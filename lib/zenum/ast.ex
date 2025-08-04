@@ -165,8 +165,8 @@ defmodule ZEnum.AST do
   Trim zenum functions that are *NOT* in the list of used functions that are
   called. Used to get rid of redundant generated functions in zenum pipelines.
   """
-  @spec remove_unused_zenum_funs(Macro.t(), list(fun_name())) :: Macro.t()
-  def remove_unused_zenum_funs(ast, used_funs) do
+  @spec treeshake(Macro.t(), list(fun_name())) :: Macro.t()
+  def treeshake(ast, used_funs) do
     # rewrite generated AST keeping only function defp clauses that are used
     ast
     |> Macro.prewalk(fn
