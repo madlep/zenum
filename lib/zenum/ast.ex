@@ -20,6 +20,12 @@ defmodule ZEnum.AST do
   @spec push_fun_name(Op.t()) :: fun_name()
   def push_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}_push__"
 
+  @doc """
+  Generates function name for pulling next values
+
+      iex> ZEnum.AST.next_fun_name(%ZEnum.Op.ToList{id: 0, n: 2, acc: []})
+      :__z_0_2_next__
+  """
   def next_fun_name(op), do: :"__z_#{Op.zenum_id(op)}_#{Op.op_number(op)}_next__"
 
   @doc """
@@ -250,6 +256,14 @@ defmodule ZEnum.AST do
     Op.next_ast(Zipper.head!(prev_ops), prev_ops, params, context)
   end
 
+  def call_next_fun_ast(ops, params, context) do
+    prev_ops = Zipper.prev!(ops)
+
+    quote generated: true, context: context do
+      unquote(next_fun_name(Zipper.head!(prev_ops)))(unquote_splicing(params))
+    end
+  end
+
   @doc """
   Generate AST that will push a value from this op along the zenum chain to be processed
   """
@@ -258,6 +272,17 @@ defmodule ZEnum.AST do
   def push(ops, params, context, {zstate, value}) do
     next_ops = Zipper.next!(ops)
     Op.push_ast(Zipper.head!(next_ops), next_ops, params, context, {zstate, value})
+  end
+
+  def call_push_fun_ast(ops, params, context, value) do
+    next_ops = Zipper.next!(ops)
+
+    quote generated: true, context: context do
+      unquote(push_fun_name(Zipper.head!(next_ops)))(
+        unquote_splicing(params),
+        unquote(value)
+      )
+    end
   end
 
   @doc """

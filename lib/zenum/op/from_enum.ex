@@ -90,7 +90,7 @@ defmodule ZEnum.Op.FromEnum do
 
       quote context: context, generated: true do
         defp unquote(next_fun_name)(unquote_splicing(cont_list_params)) do
-          unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
+          unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
         end
 
         defp unquote(next_fun_name)(unquote_splicing(done_list_params)) do
@@ -108,10 +108,10 @@ defmodule ZEnum.Op.FromEnum do
         defp unquote(next_fun_name)(unquote_splicing(params)) do
           case ZEnum.Enumerable.next(unquote(from_enum_continuation), unquote(from_enum_type)) do
             {:suspended, value, unquote(from_enum_continuation)} ->
-              unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
+              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
 
             {:halted, value} ->
-              unquote(push(ops, params, context, {:halt, Macro.var(:value, context)}))
+              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
 
             {:done, :ok} ->
               unquote(return(ops, params, context))
@@ -154,7 +154,7 @@ defmodule ZEnum.Op.FromEnum do
           unquote(from_enum_continuation) =
             (unquote(value) + unquote(step))..unquote(last)//unquote(step)
 
-          unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
+          unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
         end
 
         defp unquote(next_fun_name)(unquote_splicing(params)) do
