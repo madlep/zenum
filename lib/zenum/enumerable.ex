@@ -3,7 +3,7 @@ defmodule ZEnum.Enumerable do
 
   def continuation(list) when is_list(list), do: list
   def continuation(range) when is_struct(range, Range), do: range
-  def continuation(map) when is_map(map), do: :maps.iterator(map)
+  def continuation(map) when is_map(map), do: map |> :maps.iterator() |> :maps.next()
 
   def continuation(enum) do
     {:suspended, :ok, continuation} = Enumerable.reduce(enum, {:suspend, :ok}, &reducer_f/2)
