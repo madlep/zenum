@@ -17,10 +17,9 @@ defmodule ZEnum.Op.FromList do
 
     def next_fun_ast(op = %FromList{}, ops, params, context) do
       from_list_list = Macro.var(fun_param_name(op.n, :from_list_list), context)
-      next_fun_name = next_fun_name(op)
 
       quote context: context, generated: true do
-        defp unquote(next_fun_name)(unquote_splicing(params)) do
+        defp unquote(next_fun_name(op))(unquote_splicing(params)) do
           case unquote(from_list_list) do
             [value | unquote(from_list_list)] ->
               unquote(push(ops, params, context, {:cont, Macro.var(:value, context)}))
