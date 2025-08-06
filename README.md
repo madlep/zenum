@@ -10,6 +10,7 @@ Zero cost abstraction replacment for Elixir `Enum` and `Stream`. Faster and lowe
 
       def do_stuff(input) do
         input
+        |> ZEnum.from_list()
         |> ZEnum.map(fn x -> x * 2 end)
         |> ZEnum.filter(fn x -> x <= 6 end)
       end
@@ -26,38 +27,23 @@ The above module gets turned into something like...
 ```elixir
     defmodule ExampleZEnum do
       def do_stuff(input) do
-        [op_0_to_list_acc = [], op_3_from_list_data = input]
+        __z_0_0_next__(input, [])
+      end
 
-        case op_3_from_list_data do
-          [value_from_list_data | from_list_data2] ->
-            __z_0_2__(op_0_to_list_acc, from_list_data2, value_from_list_data)
+      defp __z_0_0_next__(op_0_from_list_list, op_3_to_list_acc) do
+        case op_0_from_list_list do
+          [value | op_0_from_list_list] ->
+            value = (fn x -> x * 2 end).(value)
+
+            if (fn x -> x <= 6 end).(value) do
+              op_3_to_list_acc = [value | op_3_to_list_acc]
+              __z_0_0_next__(op_0_from_list_list, op_3_to_list_acc)
+            else
+              __z_0_0_next__(op_0_from_list_list, op_3_to_list_acc)
+            end
 
           [] ->
-            Enum.reverse(op_0_to_list_acc)
-        end
-     end
-
-      defp __z_0_2__(op_0_to_list_acc, op_3_from_list_data, value) do
-        value2 = (fn x -> x * 2 end).(value)
-
-        if (fn x -> x <= 6 end).(value2) do
-          op_0_to_list_acc = [value2 | op_0_to_list_acc]
-
-          case op_3_from_list_data do
-            [value_from_list_data | from_list_data2] ->
-              __z_0_2__(op_0_to_list_acc, from_list_data2, value_from_list_data)
-
-            [] ->
-              Enum.reverse(op_0_to_list_acc)
-          end
-        else
-          case op_3_from_list_data do
-            [value_from_list_data | from_list_data2] ->
-              __z_0_2__(op_0_to_list_acc, from_list_data2, value_from_list_data)
-
-            [] ->
-              Enum.reverse(op_0_to_list_acc)
-          end
+            Enum.reverse(op_3_to_list_acc)
         end
       end
     end
