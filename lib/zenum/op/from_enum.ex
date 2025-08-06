@@ -39,7 +39,7 @@ defmodule ZEnum.Op.FromEnum do
               d
 
             d when is_map(d) ->
-              d |> :maps.iterator() |> :maps.next()
+              d |> :maps.iterator(:undefined) |> :maps.next()
 
             d ->
               {:suspended, :ok, cont} =
@@ -56,11 +56,23 @@ defmodule ZEnum.Op.FromEnum do
 
     def next_fun_ast(op = %FromEnum{}, ops, params, context) do
       [
+        dialyzer_opts_ast(op, ops, params, context),
         list_next_ast(op, ops, params, context),
         range_next_ast(op, ops, params, context),
         map_next_ast(op, ops, params, context),
         enum_next_ast(op, ops, params, context)
       ]
+    end
+
+    # TODO figure out if there's a better way to stop dialyzer warnings.
+    # Without the `no_fail_call` option, the map {k, v} call will "fail" if passed to a map etc function that expects plain old value from a list or range or enum.
+    defp dialyzer_opts_ast(op, _ops, params, context) do
+      fun = next_fun_name(op)
+      arity = length(params)
+
+      quote generated: true, context: context do
+        @dialyzer {:no_fail_call, [{unquote(fun), unquote(arity)}]}
+      end
     end
 
     defp list_next_ast(op = %FromEnum{}, ops, params, context) do
