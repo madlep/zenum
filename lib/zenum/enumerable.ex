@@ -1,41 +1,104 @@
 defmodule ZEnum.Enumerable do
-  @type enum_type() :: :list | :range | :map | :enum
+  def next_ast(enum, value, rest, next_ast, done_ast) do
+    quote do
+      case unquote(enum) do
+        # list
+        [unquote(value) | unquote(rest)] ->
+          unquote(next_ast)
 
-  def continuation(list) when is_list(list), do: list
-  def continuation(range) when is_struct(range, Range), do: range
-  def continuation(map) when is_map(map), do: map |> :maps.iterator() |> :maps.next()
+        [] ->
+          unquote(done_ast)
 
-  def continuation(enum) do
-    {:suspended, :ok, continuation} = Enumerable.reduce(enum, {:suspend, :ok}, &reducer_f/2)
-    continuation
-  end
+        # range
+        unquote(value)..last//step
+        when step > 0 and unquote(value) <= last
+        when step > 0 and unquote(value) >= last ->
+          unquote(rest) = (unquote(value) + step)..(last / step)
+          unquote(next_ast)
 
-  @spec next(continuation :: any(), type :: enum_type()) :: Enumerable.result()
-  def next([value | rest], :list), do: {:suspended, value, rest}
-  def next([], :list), do: {:done, :ok}
+        _first.._last//_step ->
+          unquote(done_ast)
 
-  def next(first..last//step, :range)
-      when step > 0 and first <= last
-      when step < 0 and first >= last do
-    {:suspended, first, (first + step)..last//step}
-  end
+        # map
+        map when is_map(map) ->
+          case map |> :maps.iterator(:undefined) |> :maps.next() do
+            {k, v, unquote(rest)} ->
+              unquote(value) = {k, v}
+              unquote(next_ast)
 
-  def next(_range, :range), do: {:done, :ok}
+            :done ->
+              unquote(done_ast)
+          end
 
-  def next(iterator, :map) do
-    case :maps.next(iterator) do
-      {key, value, iterator} -> {:suspended, {key, value}, iterator}
-      :none -> {:done, :ok}
+        {k, v, unquote(rest)} ->
+          unquote(value) = {k, v}
+          unquote(next_ast)
+
+        :none ->
+          unquote(done_ast)
+
+        # enum
+        cont when is_function(cont, 1) ->
+          case cont.({:cont, :ok}) do
+            {:suspended, unquote(value), unquote(rest)} ->
+              unquote(next_ast)
+
+            {:halt, unquote(value)} ->
+              unquote(rest) = []
+              unquote(next_ast)
+
+            {:done, :ok} ->
+              unquote(done_ast)
+          end
+
+        enum ->
+          {:suspended, :ok, cont} =
+            Enumerable.reduce(enum, {:suspend, :ok}, fn value, _acc -> {:suspend, value} end)
+
+          case cont.({:cont, :ok}) do
+            {:suspended, unquote(value), unquote(rest)} ->
+              unquote(next_ast)
+
+            {:halt, unquote(value)} ->
+              unquote(rest) = []
+              unquote(next_ast)
+
+            {:done, :ok} ->
+              unquote(done_ast)
+          end
+      end
     end
   end
 
-  def next(continuation, :enum), do: continuation.({:cont, :ok})
+  @spec next(continuation :: any()) :: Enumerable.result()
+  # list
+  def next([value | rest]), do: {:suspended, value, rest}
 
-  def reducer_f(value, _acc), do: {:suspend, value}
+  def next([]), do: {:done, :ok}
 
-  @spec type(Enumerable.t()) :: enum_type()
-  def type(list) when is_list(list), do: :list
-  def type(range) when is_struct(range, Range), do: :range
-  def type(map) when is_map(map), do: :map
-  def type(_enum), do: :enum
+  # range
+  def next(value..last//step)
+      when step > 0 and value <= last
+      when step < 0 and value >= last do
+    {:suspended, value, (value + step)..last//step}
+  end
+
+  def next(_first.._last//_step), do: {:done, :ok}
+
+  # map
+  def next(map) when is_map(map), do: next(map |> :maps.iterator(:undefined) |> :maps.next())
+
+  def next({k, v, iterator}), do: {:suspended, {k, v}, iterator}
+
+  def next(:none), do: {:done, :ok}
+
+  # enumerable
+  def next(cont) when is_function(cont, 1), do: cont.({:cont, :ok})
+
+  def next(enum) do
+    {:suspended, :ok, cont} =
+      Enumerable.reduce(enum, {:suspend, :ok}, fn value, _acc -> {:suspend, value} end)
+
+    next(cont)
+  end
 end

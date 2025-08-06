@@ -30,38 +30,29 @@ defmodule ZEnum.Op.FromEnum do
     use Op.DefaultImpl
 
     def state(op = %FromEnum{}) do
-      continuation_ast =
-        quote generated: true do
-          case unquote(op.enum) do
-            d when is_list(d) ->
-              d
-
-            d when is_struct(d, Range) ->
-              d
-
-            d when is_map(d) ->
-              d |> :maps.iterator(:undefined) |> :maps.next()
-
-            d ->
-              {:suspended, :ok, cont} =
-                Enumerable.reduce(d, {:suspend, :ok}, fn acc, _ -> {:suspend, acc} end)
-
-              cont
-          end
-        end
-
       [
-        {:from_enum_continuation, continuation_ast}
+        {:from_enum_continuation, op.enum}
       ]
     end
 
     def next_fun_ast(op = %FromEnum{}, ops, params, context) do
+      from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
+
       [
         dialyzer_opts_ast(op, ops, params, context),
-        list_next_ast(op, ops, params, context),
-        range_next_ast(op, ops, params, context),
-        map_next_ast(op, ops, params, context),
-        enum_next_ast(op, ops, params, context)
+        quote context: context, generated: true do
+          defp unquote(next_fun_name(op))(unquote_splicing(params)) do
+            unquote(
+              ZEnum.Enumerable.next_ast(
+                from_enum_continuation,
+                Macro.var(:value, context),
+                from_enum_continuation,
+                call_push_fun_ast(ops, params, context, Macro.var(:value, context)),
+                return(ops, params, context)
+              )
+            )
+          end
+        end
       ]
     end
 
@@ -70,81 +61,6 @@ defmodule ZEnum.Op.FromEnum do
     defp dialyzer_opts_ast(op, _ops, params, context) do
       quote generated: true, context: context do
         @dialyzer {:no_fail_call, [{unquote(next_fun_name(op)), unquote(length(params))}]}
-      end
-    end
-
-    defp list_next_ast(op = %FromEnum{}, ops, params, context) do
-      from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
-
-      quote context: context, generated: true do
-        defp unquote(next_fun_name(op))(unquote_splicing(params))
-             when is_list(unquote(from_enum_continuation)) do
-          case unquote(from_enum_continuation) do
-            [value | unquote(from_enum_continuation)] ->
-              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
-
-            [] ->
-              unquote(return(ops, params, context))
-          end
-        end
-      end
-    end
-
-    defp range_next_ast(op = %FromEnum{}, ops, params, context) do
-      from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
-
-      quote context: context, generated: true do
-        defp unquote(next_fun_name(op))(unquote_splicing(params))
-             when is_struct(unquote(from_enum_continuation), Range) do
-          case unquote(from_enum_continuation) do
-            value..last//step when step > 0 and value <= last when step < 0 and value >= last ->
-              unquote(from_enum_continuation) = (value + step)..last//step
-              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
-
-            _ ->
-              unquote(return(ops, params, context))
-          end
-        end
-      end
-    end
-
-    defp map_next_ast(op = %FromEnum{}, ops, params, context) do
-      from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
-
-      quote context: context, generated: true do
-        defp unquote(next_fun_name(op))(unquote_splicing(params))
-             when (is_tuple(unquote(from_enum_continuation)) and
-                     tuple_size(unquote(from_enum_continuation)) == 3) or
-                    unquote(from_enum_continuation) == :none do
-          case unquote(from_enum_continuation) do
-            :none ->
-              unquote(return(ops, params, context))
-
-            {k, v, unquote(from_enum_continuation)} ->
-              value = {k, v}
-              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
-          end
-        end
-      end
-    end
-
-    defp enum_next_ast(op = %FromEnum{}, ops, params, context) do
-      from_enum_continuation = Macro.var(fun_param_name(op.n, :from_enum_continuation), context)
-
-      quote context: context, generated: true do
-        defp unquote(next_fun_name(op))(unquote_splicing(params))
-             when is_function(unquote(from_enum_continuation), 1) do
-          case unquote(from_enum_continuation).({:cont, :ok}) do
-            {:suspended, value, unquote(from_enum_continuation)} ->
-              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
-
-            {:halted, value} ->
-              unquote(call_push_fun_ast(ops, params, context, Macro.var(:value, context)))
-
-            {:done, :ok} ->
-              unquote(return(ops, params, context))
-          end
-        end
       end
     end
 
