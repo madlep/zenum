@@ -26,7 +26,7 @@ defmodule ZEnum.Enumerable do
               unquote(value) = {k, v}
               unquote(next_ast)
 
-            :done ->
+            :none ->
               unquote(done_ast)
           end
 
@@ -43,7 +43,7 @@ defmodule ZEnum.Enumerable do
             {:suspended, unquote(value), unquote(rest)} ->
               unquote(next_ast)
 
-            {:halt, unquote(value)} ->
+            {:halted, unquote(value)} ->
               unquote(rest) = []
               unquote(next_ast)
 
@@ -59,7 +59,7 @@ defmodule ZEnum.Enumerable do
             {:suspended, unquote(value), unquote(rest)} ->
               unquote(next_ast)
 
-            {:halt, unquote(value)} ->
+            {:halted, unquote(value)} ->
               unquote(rest) = []
               unquote(next_ast)
 
