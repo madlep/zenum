@@ -48,7 +48,8 @@ defmodule ZEnum.Op.FromEnum do
                 Macro.var(:value, context),
                 from_enum_continuation,
                 call_push_fun_ast(ops, params, context, Macro.var(:value, context)),
-                return(ops, params, context)
+                return(ops, params, context),
+                context
               )
             )
           end

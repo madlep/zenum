@@ -1,6 +1,6 @@
 defmodule ZEnum.Enumerable do
-  def next_ast(enum, value, rest, next_ast, done_ast) do
-    quote do
+  def next_ast(enum, value, rest, next_ast, done_ast, context) do
+    quote generated: true, context: context do
       case unquote(enum) do
         # list
         [unquote(value) | unquote(rest)] ->
