@@ -230,7 +230,7 @@ defmodule ZEnum.AST do
 
   def debug(ast, title, :ast, _env) do
     IO.puts("== #{title} ==")
-    IO.inspect(ast)
+    IO.inspect(ast, limit: :infinity)
   end
 
   def debug(ast, _title, _option, _env), do: ast
