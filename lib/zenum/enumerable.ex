@@ -12,8 +12,8 @@ defmodule ZEnum.Enumerable do
         # range
         unquote(value)..last//step
         when step > 0 and unquote(value) <= last
-        when step > 0 and unquote(value) >= last ->
-          unquote(rest) = (unquote(value) + step)..(last / step)
+        when step < 0 and unquote(value) >= last ->
+          unquote(rest) = (unquote(value) + step)..last//step
           unquote(next_ast)
 
         _first.._last//_step ->
