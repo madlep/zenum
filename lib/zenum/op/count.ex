@@ -19,22 +19,25 @@ defmodule ZEnum.Op.Count do
     def push_ast(op = %Count{}, ops, params, context, {zstate, value}) do
       acc = Macro.var(fun_param_name(op.n, :count_acc), context)
 
-      if op.f do
-        quote generated: true, context: context do
-          unquote(acc) =
+      acc_bump_ast =
+        if op.f do
+          quote generated: true, context: context do
             if unquote(op.f).(unquote_splicing([value])) do
               unquote(acc) + 1
             else
               unquote(acc)
             end
+          end
+        else
+          quote generated: true, context: context do
+            unquote(acc) + 1
+          end
+        end
 
-          unquote(next_or_return(ops, params, context, zstate))
-        end
-      else
-        quote generated: true, context: context do
-          unquote(acc) = unquote(acc) + 1
-          unquote(next_or_return(ops, params, context, zstate))
-        end
+      quote generated: true, context: context do
+        unquote(acc) = unquote(acc_bump_ast)
+
+        unquote(next_or_return(ops, params, context, zstate))
       end
     end
 
