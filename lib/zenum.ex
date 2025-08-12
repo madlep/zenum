@@ -89,7 +89,7 @@ defmodule ZEnum do
   end
 
   defmacro concat(z) do
-    build_zenum(z, {:concat, []}, __CALLER__)
+    build_zenum(z, {:concat1, []}, __CALLER__)
   end
 
   defmacro filter(z, f) do
@@ -120,7 +120,7 @@ defmodule ZEnum do
     chunk_by: Op.ChunkBy,
     chunk_every: Op.ChunkEvery,
     chunk_while: Op.ChunkWhile,
-    concat: Op.Concat,
+    concat1: Op.Concat1,
     filter: Op.Filter,
     map: Op.MapLiteralFn,
     from_list: Op.FromList,
