@@ -60,7 +60,7 @@ defmodule ZEnum.AST do
           | {:mf_capture, mod :: Macro.t(), fun :: Macro.t(), args :: list(inlined_arg())}
           | {:local_f_capture, fun :: Macro.t(), args :: list(inlined_arg())}
           | {:anon_f, ast :: Macro.t()}
-          | {:not_inlineable, ast :: Macro.t()}
+          | {:not_inlined, ast :: Macro.t()}
   def maybe_inline_function(f)
 
   # &Mod.fun/arity reference eg `&String.capitalize/1`
@@ -72,7 +72,7 @@ defmodule ZEnum.AST do
   end
 
   # &fun/arity local reference eg `&local_do_stuff/1`
-  def maybe_inline_function({:&, [], [{:/, _, [fun, arity]}]})
+  def maybe_inline_function({:&, _, [{:/, _, [fun, arity]}]})
       when is_integer(arity) do
     {:local_fa_ref, fun, arity}
   end
@@ -82,26 +82,34 @@ defmodule ZEnum.AST do
   # `&String.bag_distance(some_var, &1)` - not ok, don't have access to `some_var` when inlined
   def maybe_inline_function(
         ast =
-          {:&, [],
+          {:&, _,
            [
-             {{:., [], [mod = {:__aliases__, _, _}, fun]}, [], args}
+             {{:., _, [mod = {:__aliases__, _, _}, fun]}, _, args}
            ]}
       )
       when is_list(args) do
     if Enum.all?(args, &inlineable_ast?(&1, %{})) do
       {:mf_capture, mod, fun, Enum.map(args, &inline_arg/1)}
     else
-      {:not_inlineable, ast}
+      {:not_inlined, ast}
     end
   end
 
+  # short & &1 anonymous function
+  # TODO properly distinguish between short anon fns and local capture. These are identical
+  # `&{&1}` AST = `{:&, [], [{:{},  [], [{:&, [], [1]}]}]}`
+  # `&foo(&1)` =  `{:&, [], [{:foo, [], [{:&, [], [1]}]}]}`
+  def maybe_inline_function(ast = {:&, _, [{:&, _, [1]}]}) do
+    {:anon_f, ast}
+  end
+
   # inlineable local f capture
-  def maybe_inline_function(ast = {:&, [], [{fun, [], args}]})
+  def maybe_inline_function(ast = {:&, _, [{fun, _, args}]})
       when is_list(args) do
     if Enum.all?(args, &inlineable_ast?(&1, %{})) do
       {:local_f_capture, fun, Enum.map(args, &inline_arg/1)}
     else
-      {:not_inlineable, ast}
+      {:not_inlined, ast}
     end
   end
 
@@ -110,7 +118,24 @@ defmodule ZEnum.AST do
     if inlineable_ast?(ast, %{}) do
       {:anon_f, ast}
     else
-      {:not_inlineable, ast}
+      {:not_inlined, ast}
+    end
+  end
+
+  # local var function
+  def maybe_inline_function(ast = {fun_var, _, context})
+      when is_atom(fun_var) and is_atom(context),
+      do: {:not_inlined, ast}
+
+  @doc """
+  Mark AST as inlined if it is able to be
+  """
+  @spec maybe_inline(Macro.t()) :: {:inlined, Macro.t()} | {:not_inlined, Macro.t()}
+  def maybe_inline(ast) do
+    if inlineable_ast?(ast, %{}) do
+      {:inlined, ast}
+    else
+      {:not_inlined, ast}
     end
   end
 
@@ -170,12 +195,12 @@ defmodule ZEnum.AST do
             if inlineable_ast?(exp, bindings2) do
               {:cont, bindings2}
             else
-              {:halt, :not_inlineable}
+              {:halt, :not_inlined}
             end
         end
       end)
 
-    result != :not_inlineable
+    result != :not_inlined
   end
 
   # local function captures are ok

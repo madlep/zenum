@@ -135,7 +135,7 @@ defmodule ZEnum.ASTTest do
     test "doesn't inline &Mod.fun capture if capturing non-inlineable params" do
       ast = quote(do: &String.bag_distance(some_local_var, &1))
 
-      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlineable, ast})
+      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlined, ast})
     end
 
     test "inlines &fun local capture" do
@@ -150,7 +150,7 @@ defmodule ZEnum.ASTTest do
     test "doesn't inline &fun local capture if capturing non-inlineable params" do
       ast = quote(do: &my_function(some_local_var, &1))
 
-      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlineable, ast})
+      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlined, ast})
     end
 
     test "inlines anonymous functions that don't close over local params" do
@@ -162,20 +162,29 @@ defmodule ZEnum.ASTTest do
     test "does not inline anonymous functions that do close over local parms" do
       ast = quote(do: fn x -> x + local_var end)
 
-      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlineable, ast})
+      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlined, ast})
     end
 
-    # test "inlines anonymous functions that define local variables" do
-    #   ast =
-    #     quote do
-    #       fn x ->
-    #         y = 1
-    #         x + y
-    #       end
-    #     end
+    test "inlines anonymous functions that define local variables" do
+      ast =
+        quote do
+          fn x ->
+            y = 1
+            x + y
+          end
+        end
 
-    #   assert(ZEnum.AST.maybe_inline_function(ast) == {:anon_f, ast})
-    # end
+      assert(ZEnum.AST.maybe_inline_function(ast) == {:anon_f, ast})
+    end
+
+    test "doesn't inline anything passed as a local var" do
+      ast =
+        quote do
+          local_fun_var
+        end
+
+      assert(ZEnum.AST.maybe_inline_function(ast) == {:not_inlined, ast})
+    end
   end
 
   describe "inlinable_ast?/2" do
