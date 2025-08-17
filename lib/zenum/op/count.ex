@@ -7,9 +7,9 @@ defmodule ZEnum.Op.Count do
   defstruct [:id, :n, :f, :limit]
 
   def build_op(id, [f, limit]) do
-    f = if f, do: Inline.maybe_inline_function(f), else: nil
-    alias ZEnum.AST.Inline
-    limit = if limit, do: Inline.maybe_inline(limit), else: nil
+    f = f && Inline.maybe_inline_function(f)
+    limit = limit && Inline.maybe_inline(limit)
+
     %Count{id: id, f: f, limit: limit}
   end
 
@@ -96,7 +96,7 @@ defmodule ZEnum.Op.Count do
               end
             end
 
-          {:not_inlined, _} ->
+          {:not_inlined, _f} ->
             quote generated: true, context: context do
               if unquote(f_arg).(unquote_splicing([value])) do
                 unquote(acc_arg) + 1
@@ -115,7 +115,7 @@ defmodule ZEnum.Op.Count do
         if op.limit do
           limit_ast =
             case op.limit do
-              {:inlined, limit} -> limit
+              {:inlined_ast, limit} -> limit
               {:not_inlined, _} -> limit_arg
             end
 

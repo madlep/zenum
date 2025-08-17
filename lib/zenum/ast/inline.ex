@@ -1,15 +1,15 @@
 defmodule ZEnum.AST.Inline do
-  @doc """
-  Generate inlined form of function if it is safe to inline - ie doesn't close over any vars from it's parent scope
-  """
-  @spec maybe_inline_function(Macro.t()) ::
+  @type inlined_function() ::
           {:mfa_ref, mod :: Macro.t(), fun :: Macro.t(), arity :: integer()}
           | {:local_fa_ref, fun :: Macro.t(), arity :: integer()}
           | {:mf_capture, mod :: Macro.t(), fun :: Macro.t(), args :: list(inlined_arg())}
           | {:local_f_capture, fun :: Macro.t(), args :: list(inlined_arg())}
           | {:anon_f, ast :: Macro.t()}
           | {:not_inlined, ast :: Macro.t()}
-  def maybe_inline_function(f)
+  @doc """
+  Generate inlined form of function if it is safe to inline - ie doesn't close over any vars from it's parent scope
+  """
+  @spec maybe_inline_function(Macro.t()) :: inlined_function()
 
   # &Mod.fun/arity reference eg `&String.capitalize/1`
   def maybe_inline_function(
@@ -29,11 +29,7 @@ defmodule ZEnum.AST.Inline do
   # `&String.bag_distance("something", &1)` - ok
   # `&String.bag_distance(some_var, &1)` - not ok, don't have access to `some_var` when inlined
   def maybe_inline_function(
-        ast =
-          {:&, _,
-           [
-             {{:., _, [mod = {:__aliases__, _, _}, fun]}, _, args}
-           ]}
+        ast = {:&, _, [{{:., _, [mod = {:__aliases__, _, _}, fun]}, _, args}]}
       )
       when is_list(args) do
     if Enum.all?(args, &inlineable_ast?(&1, %{})) do
@@ -78,10 +74,10 @@ defmodule ZEnum.AST.Inline do
   @doc """
   Mark AST as inlined if it is able to be
   """
-  @spec maybe_inline(Macro.t()) :: {:inlined, Macro.t()} | {:not_inlined, Macro.t()}
+  @spec maybe_inline(Macro.t()) :: {:inlined_ast, Macro.t()} | {:not_inlined, Macro.t()}
   def maybe_inline(ast) do
     if inlineable_ast?(ast, %{}) do
-      {:inlined, ast}
+      {:inlined_ast, ast}
     else
       {:not_inlined, ast}
     end
@@ -193,4 +189,56 @@ defmodule ZEnum.AST.Inline do
   @type inlined_arg() :: {:capture, n :: integer()} | {:inlined, arg :: Macro.t()}
   def inline_arg({:&, _, [n]}), do: {:capture, n}
   def inline_arg(ast), do: {:inlined, ast}
+
+  @spec inlined?(inlined_function() | {:inlined_ast, Macro.t()}) :: boolean()
+  def inlined?({:mfa_ref, _mod, _fun, _arity}), do: true
+  def inlined?({:local_fa_ref, _fun, _arity}), do: true
+  def inlined?({:mf_capture, _mod, _fun, _args}), do: true
+  def inlined?({:local_f_capture, _fun, _args}), do: true
+  def inlined?({:anon_f, _ast}), do: true
+  def inlined?({:inlined_ast, _ast}), do: true
+  def inlined?({:not_inlined, _ast}), do: false
+
+  def call_inlined_fun(f, args_ast, context) do
+    case f do
+      {:mfa_ref, mod_ast, fun_ast, 1} ->
+        quote generated: true, context: context do
+          unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args_ast))
+        end
+
+      {:local_fa_ref, fun_ast, 1} ->
+        quote generated: true, context: context do
+          unquote(fun_ast)(unquote_splicing(args_ast))
+        end
+
+      {:mf_capture, mod_ast, fun_ast, captured_args} ->
+        args =
+          captured_args
+          |> Enum.map(fn
+            {:inlined, i_ast} -> i_ast
+            {:capture, n} -> Enum.at(args_ast, n - 1)
+          end)
+
+        quote generated: true, context: context do
+          unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args))
+        end
+
+      {:local_f_capture, fun_ast, captured_args} ->
+        args =
+          captured_args
+          |> Enum.map(fn
+            {:inlined, i_ast} -> i_ast
+            {:capture, n} -> Enum.at(args_ast, n - 1)
+          end)
+
+        quote generated: true, context: context do
+          unquote(fun_ast)(unquote_splicing(args))
+        end
+
+      {:anon_f, fun_ast} ->
+        quote generated: true, context: context do
+          unquote(fun_ast).(unquote_splicing(args_ast))
+        end
+    end
+  end
 end
