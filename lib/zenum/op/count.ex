@@ -1,13 +1,15 @@
 defmodule ZEnum.Op.Count do
   alias __MODULE__
   alias ZEnum.Op
+  alias ZEnum.AST.Inline
   import ZEnum.AST
 
   defstruct [:id, :n, :f, :limit]
 
   def build_op(id, [f, limit]) do
-    f = if f, do: maybe_inline_function(f), else: nil
-    limit = if limit, do: maybe_inline(limit), else: nil
+    f = if f, do: Inline.maybe_inline_function(f), else: nil
+    alias ZEnum.AST.Inline
+    limit = if limit, do: Inline.maybe_inline(limit), else: nil
     %Count{id: id, f: f, limit: limit}
   end
 
