@@ -21,11 +21,8 @@ defmodule ZEnum.Op.FromEnum do
       # {:%{}, _, key_values} ->
       #   %FromHash{id: id, n: n, key_values: key_values}
 
-      enum = {var, _, context} when is_atom(var) and is_atom(context) ->
+      enum ->
         %FromEnum{id: id, enum: enum}
-
-      enum_cont = {:fn, _, [{:->, _, [[_arg1, _arg2], _body]}]} ->
-        %FromEnum{id: id, enum: enum_cont}
     end
   end
 

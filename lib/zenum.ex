@@ -213,18 +213,12 @@ defmodule ZEnum do
     end
   end
 
-  # first zenum op, passed variable
-  defp build_ops(arg = {var, _meta, ctx}, id) when is_atom(var) and is_atom(ctx) do
-    [Op.FromEnum.build_op(id, [arg])]
-  end
-
   # first zenum op, passed list
   defp build_ops(arg, id) when is_list(arg) do
     [Op.FromList.build_op(id, [arg])]
   end
 
-  # first zenum op, passed enumerable continuation
-  defp build_ops(arg = {:fn, _, [{:->, _, [[_arg1, _arg2], _body]}]}, id) do
+  defp build_ops(arg, id) do
     [Op.FromEnum.build_op(id, [arg])]
   end
 

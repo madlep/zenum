@@ -20,7 +20,7 @@ defmodule ZEnum.Enumerable do
           unquote(done_ast)
 
         # map
-        map when is_map(map) ->
+        map when is_map(map) and not is_struct(map) ->
           case map |> :maps.iterator(:undefined) |> :maps.next() do
             {k, v, unquote(rest)} ->
               unquote(value) = {k, v}
