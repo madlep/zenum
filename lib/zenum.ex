@@ -188,7 +188,7 @@ defmodule ZEnum do
       end
 
     record_used_funs(ast, env.module)
-    AST.debug(ast, "to_list", Module.get_attribute(mod, :zenum_debug), env)
+    AST.debug(ast, "build_zenum_ast", Module.get_attribute(mod, :zenum_debug), env)
 
     ast
   end
