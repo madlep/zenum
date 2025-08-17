@@ -97,7 +97,11 @@ defmodule ZEnum do
   end
 
   defmacro count(z, f \\ nil) do
-    build_zenum(z, nil, {:count, [f]}, __CALLER__)
+    build_zenum(z, nil, {:count, [f, nil]}, __CALLER__)
+  end
+
+  defmacro count_until(z, f \\ nil, limit) do
+    build_zenum(z, nil, {:count, [f, limit]}, __CALLER__)
   end
 
   defmacro filter(z, f) do
