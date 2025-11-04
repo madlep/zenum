@@ -199,46 +199,62 @@ defmodule ZEnum.AST.Inline do
   def inlined?({:inlined_ast, _ast}), do: true
   def inlined?({:not_inlined, _ast}), do: false
 
-  def call_inlined_fun(f, args_ast, context) do
-    case f do
-      {:mfa_ref, mod_ast, fun_ast, 1} ->
-        quote generated: true, context: context do
-          unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args_ast))
-        end
-
-      {:local_fa_ref, fun_ast, 1} ->
-        quote generated: true, context: context do
-          unquote(fun_ast)(unquote_splicing(args_ast))
-        end
-
-      {:mf_capture, mod_ast, fun_ast, captured_args} ->
-        args =
-          captured_args
-          |> Enum.map(fn
-            {:inlined, i_ast} -> i_ast
-            {:capture, n} -> Enum.at(args_ast, n - 1)
-          end)
-
-        quote generated: true, context: context do
-          unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args))
-        end
-
-      {:local_f_capture, fun_ast, captured_args} ->
-        args =
-          captured_args
-          |> Enum.map(fn
-            {:inlined, i_ast} -> i_ast
-            {:capture, n} -> Enum.at(args_ast, n - 1)
-          end)
-
-        quote generated: true, context: context do
-          unquote(fun_ast)(unquote_splicing(args))
-        end
-
-      {:anon_f, fun_ast} ->
-        quote generated: true, context: context do
-          unquote(fun_ast).(unquote_splicing(args_ast))
-        end
+  @spec call_fun(
+          inlined_function(),
+          args_ast :: Macro.t(),
+          fallback_ast :: Macro.t(),
+          context :: atom()
+        ) :: Macro.t()
+  def call_fun({:mfa_ref, mod_ast, fun_ast, _arity}, args_ast, context) do
+    quote generated: true, context: context do
+      unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args_ast))
     end
   end
+
+  def call_fun({:local_fa_ref, fun_ast, _arity}, args_ast, _fallback_ast, context) do
+    quote generated: true, context: context do
+      unquote(fun_ast)(unquote_splicing(args_ast))
+    end
+  end
+
+  def call_fun({:mf_capture, mod_ast, fun_ast, captured_args}, args_ast, _fallback_ast, context) do
+    args =
+      captured_args
+      |> Enum.map(fn
+        {:inlined, i_ast} -> i_ast
+        {:capture, n} -> Enum.at(args_ast, n - 1)
+      end)
+
+    quote generated: true, context: context do
+      unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args))
+    end
+  end
+
+  def call_fun({:local_f_capture, fun_ast, captured_args}, args_ast, _fallback_ast, context) do
+    args =
+      captured_args
+      |> Enum.map(fn
+        {:inlined, i_ast} -> i_ast
+        {:capture, n} -> Enum.at(args_ast, n - 1)
+      end)
+
+    quote generated: true, context: context do
+      unquote(fun_ast)(unquote_splicing(args))
+    end
+  end
+
+  def call_fun({:anon_f, fun_ast}, args_ast, _fallback_ast, context) do
+    quote generated: true, context: context do
+      unquote(fun_ast).(unquote_splicing(args_ast))
+    end
+  end
+
+  def call_fun({:not_inlined, _}, args_ast, fallback_ast, context) do
+    quote generated: true, context: context do
+      unquote(fallback_ast).(unquote_splicing(args_ast))
+    end
+  end
+
+  def ast({:inlined_ast, ast}, _fallback_ast), do: ast
+  def ast({:not_inlined, _}, fallback_ast), do: fallback_ast
 end

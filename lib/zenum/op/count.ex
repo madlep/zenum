@@ -36,91 +36,24 @@ defmodule ZEnum.Op.Count do
       limit_arg = Macro.var(fun_param_name(op.n, :count_limit), context)
 
       acc_bump_ast =
-        case op.f do
-          {:mfa_ref, mod_ast, fun_ast, 1} ->
-            quote generated: true, context: context do
-              if unquote(mod_ast).unquote(fun_ast)(unquote_splicing([value])) do
-                unquote(acc_arg) + 1
-              else
-                unquote(acc_arg)
-              end
-            end
-
-          {:local_fa_ref, fun_ast, 1} ->
-            quote generated: true, context: context do
-              if unquote(fun_ast)(unquote_splicing([value])) do
-                unquote(acc_arg) + 1
-              else
-                unquote(acc_arg)
-              end
-            end
-
-          {:mf_capture, mod_ast, fun_ast, captured_args} ->
-            args =
-              captured_args
-              |> Enum.map(fn
-                {:inlined, i_ast} -> i_ast
-                {:capture, n} -> Enum.at([value], n - 1)
-              end)
-
-            quote generated: true, context: context do
-              if unquote(mod_ast).unquote(fun_ast)(unquote_splicing(args)) do
-                unquote(acc_arg) + 1
-              else
-                unquote(acc_arg)
-              end
-            end
-
-          {:local_f_capture, fun_ast, captured_args} ->
-            args =
-              captured_args
-              |> Enum.map(fn
-                {:inlined, i_ast} -> i_ast
-                {:capture, n} -> Enum.at([value], n - 1)
-              end)
-
-            quote generated: true, context: context do
-              if unquote(fun_ast)(unquote_splicing(args)) do
-                unquote(acc_arg) + 1
-              else
-                unquote(acc_arg)
-              end
-            end
-
-          {:anon_f, fun_ast} ->
-            quote generated: true, context: context do
-              if unquote(fun_ast).(unquote_splicing([value])) do
-                unquote(acc_arg) + 1
-              else
-                unquote(acc_arg)
-              end
-            end
-
-          {:not_inlined, _f} ->
-            quote generated: true, context: context do
-              if unquote(f_arg).(unquote_splicing([value])) do
-                unquote(acc_arg) + 1
-              else
-                unquote(acc_arg)
-              end
-            end
-
-          nil ->
-            quote generated: true, context: context do
+        if op.f do
+          quote generated: true, context: context do
+            if unquote(Inline.call_fun(op.f, [value], f_arg, context)) do
               unquote(acc_arg) + 1
+            else
+              unquote(acc_arg)
             end
+          end
+        else
+          quote generated: true, context: context do
+            unquote(acc_arg) + 1
+          end
         end
 
       limit_return_ast =
         if op.limit do
-          limit_ast =
-            case op.limit do
-              {:inlined_ast, limit} -> limit
-              {:not_inlined, _} -> limit_arg
-            end
-
           quote generated: true, context: context do
-            if unquote(acc_arg) >= unquote(limit_ast) do
+            if unquote(acc_arg) >= unquote(Inline.ast(op.limit, limit_arg)) do
               unquote(return_ast(op, ops, params, context))
             else
               unquote(next_or_return(ops, params, context, zstate))
