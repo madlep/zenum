@@ -132,6 +132,10 @@ defmodule ZEnum do
     build_zenum(z, {:with_index, [fun_or_offset]}, __CALLER__)
   end
 
+  defmacro zip_with(z, enum2, zip_fun) do
+    build_zenum(z, {:zip_with3, [enum2, zip_fun]}, __CALLER__)
+  end
+
   ### parse ops
   @op_mod_lookup %{
     all?: Op.Predicate,
@@ -149,7 +153,8 @@ defmodule ZEnum do
     from_enum: Op.FromEnum,
     to_list: Op.ToList,
     take: Op.Take,
-    with_index: Op.WithIndex
+    with_index: Op.WithIndex,
+    zip_with3: Op.ZipWith3
   }
 
   defp build_zenum(z, op_and_args, term_op_and_args \\ {:to_list, []}, env)
