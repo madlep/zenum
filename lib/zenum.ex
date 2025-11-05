@@ -124,6 +124,10 @@ defmodule ZEnum do
     build_zenum(z, nil, {:to_list, []}, __CALLER__)
   end
 
+  defmacro take(z, amount) do
+    build_zenum(z, {:take, [amount]}, __CALLER__)
+  end
+
   ### parse ops
   @op_mod_lookup %{
     all?: Op.Predicate,
@@ -139,7 +143,8 @@ defmodule ZEnum do
     map: Op.MapLiteralFn,
     from_list: Op.FromList,
     from_enum: Op.FromEnum,
-    to_list: Op.ToList
+    to_list: Op.ToList,
+    take: Op.Take
   }
 
   defp build_zenum(z, op_and_args, term_op_and_args \\ {:to_list, []}, env)
